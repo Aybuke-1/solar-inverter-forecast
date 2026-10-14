@@ -156,7 +156,107 @@ def save_plant_chart(totals: pd.DataFrame) -> Path:
     return path
 
 
-def save_dashboard_data(metrics: dict, errors: pd.DataFrame, totals: pd.DataFrame) -> Path:
+def calculate_hourly_errors(test: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Son testte hatanın hedef saate ve invertere göre değişimini ölç."""
+    results = test[["SOURCE_KEY", "TARGET_TIME", TARGET]].copy()
+    results["hour"] = results["TARGET_TIME"].dt.hour
+    results["baseline_error"] = (test[TARGET] - test["BASELINE_PREDICTION"]).abs()
+    results["model_error"] = (test[TARGET] - test["MODEL_PREDICTION"]).abs()
+
+    def summarize(group_columns: list[str]) -> pd.DataFrame:
+        return (
+            results.groupby(group_columns, as_index=False)
+            .agg(
+                examples=(TARGET, "size"),
+                baseline_mae=("baseline_error", "mean"),
+                model_mae=("model_error", "mean"),
+            )
+            .sort_values(group_columns)
+        )
+
+    return summarize(["hour"]), summarize(["SOURCE_KEY", "hour"])
+
+
+def grouped_feature_importance(model, inputs: pd.DataFrame, actual: pd.Series) -> pd.DataFrame:
+    """Doğrulama verisinde bir girdi grubunu karıştırıp MAE artışını ölç."""
+    groups = {
+        "Anlık AC güç": ["AC_POWER"],
+        "Güneş ışınımı": ["IRRADIATION"],
+        "Ortam sıcaklığı": ["AMBIENT_TEMPERATURE"],
+        "Panel sıcaklığı": ["MODULE_TEMPERATURE"],
+        "Saat": ["HOUR"],
+        "Dakika": ["MINUTE"],
+        # Cihaz kimliği one-hot sütunlarının birlikte karıştırılması gerekir.
+        "İnverter kimliği": [column for column in inputs if column.startswith("SOURCE_KEY_")],
+    }
+    base_error = mean_absolute_error(actual, np.maximum(model.predict(inputs), 0))
+    rng = np.random.default_rng(42)
+    rows = []
+    for label, columns in groups.items():
+        increases = []
+        for _ in range(3):
+            permutation = rng.permutation(len(inputs))
+            shuffled = inputs.copy()
+            shuffled.loc[:, columns] = inputs.iloc[permutation][columns].to_numpy()
+            error = mean_absolute_error(actual, np.maximum(model.predict(shuffled), 0))
+            increases.append(error - base_error)
+        rows.append(
+            {
+                "feature": label,
+                "mae_increase": float(np.mean(increases)),
+                "std": float(np.std(increases)),
+            }
+        )
+    return pd.DataFrame(rows).sort_values("mae_increase", ascending=False)
+
+
+def save_hourly_chart(hourly: pd.DataFrame) -> Path:
+    """Üretimin görüldüğü hedef saatlerinde iki yöntemin hatasını karşılaştır."""
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    hours = hourly[hourly["hour"].between(6, 18)]
+    positions = np.arange(len(hours))
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(positions - 0.18, hours["baseline_mae"], 0.36, label="Basit tahmin", color="#3a9d78")
+    ax.bar(positions + 0.18, hours["model_mae"], 0.36, label="Model", color="#e79b46")
+    ax.set_xticks(positions, [f"{hour:02d}:00" for hour in hours["hour"]], rotation=45)
+    ax.set_ylabel("Ortalama mutlak hata (MAE)")
+    ax.set_xlabel("Tahmin edilen ölçümün saati")
+    ax.set_title("Son testte saatlere göre inverter tahmin hatası")
+    ax.legend()
+    ax.grid(axis="y", alpha=0.2)
+    fig.tight_layout()
+    path = FIGURE_DIR / "hourly_errors.png"
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+    return path
+
+
+def save_importance_chart(importance: pd.DataFrame) -> Path:
+    """Girdi grubu karıştırıldığında doğrulama hatasının nasıl değiştiğini çiz."""
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    values = importance.sort_values("mae_increase")
+    colors = ["#d65f5f" if value < 0 else "#3a9d78" for value in values["mae_increase"]]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.barh(values["feature"], values["mae_increase"], color=colors)
+    ax.axvline(0, color="#333333", linewidth=1)
+    ax.set_xlabel("Karıştırınca MAE değişimi (pozitif: model bu girdiden yararlanıyor)")
+    ax.set_title("Gündüz doğrulama verisinde girdi gruplarının etkisi")
+    ax.grid(axis="x", alpha=0.2)
+    fig.tight_layout()
+    path = FIGURE_DIR / "feature_importance.png"
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+    return path
+
+
+def save_dashboard_data(
+    metrics: dict,
+    errors: pd.DataFrame,
+    totals: pd.DataFrame,
+    hourly: pd.DataFrame,
+    inverter_hourly: pd.DataFrame,
+    importance: pd.DataFrame,
+) -> Path:
     """Web ekranına yalnızca özet sonuçları ve son günün toplam güç serisini ver."""
     last_day = totals["TARGET_TIME"].dt.date.max()
     last_day_totals = totals[totals["TARGET_TIME"].dt.date == last_day]
@@ -171,6 +271,33 @@ def save_dashboard_data(metrics: dict, errors: pd.DataFrame, totals: pd.DataFram
                 "improvement": round(float(row.mae_improvement), 2),
             }
             for row in errors.itertuples(index=False)
+        ],
+        "hourly_errors": [
+            {
+                "hour": int(row.hour),
+                "examples": int(row.examples),
+                "baseline_mae": round(float(row.baseline_mae), 2),
+                "model_mae": round(float(row.model_mae), 2),
+            }
+            for row in hourly.itertuples(index=False)
+        ],
+        "inverter_hourly_errors": [
+            {
+                "id": row.SOURCE_KEY,
+                "hour": int(row.hour),
+                "examples": int(row.examples),
+                "baseline_mae": round(float(row.baseline_mae), 2),
+                "model_mae": round(float(row.model_mae), 2),
+            }
+            for row in inverter_hourly.itertuples(index=False)
+        ],
+        "feature_importance": [
+            {
+                "feature": row.feature,
+                "mae_increase": round(float(row.mae_increase), 2),
+                "std": round(float(row.std), 2),
+            }
+            for row in importance.itertuples(index=False)
         ],
         "plant_day": str(last_day),
         "plant_series": [
@@ -202,12 +329,35 @@ def main() -> None:
     )
 
     validation_errors = {}
+    validation_predictions = {}
+    fitted_candidates = {}
     for name, model in candidate_models().items():
         model.fit(features.loc[train.index], train[TARGET])
         predictions = np.maximum(model.predict(features.loc[validation.index]), 0)
         validation_errors[name] = mean_absolute_error(validation[TARGET], predictions)
+        validation_predictions[name] = predictions
+        fitted_candidates[name] = model
 
     selected_name = min(validation_errors, key=validation_errors.get)
+    validation_model = fitted_candidates[selected_name]
+    validation_with_predictions = validation.copy()
+    validation_with_predictions["MODEL_PREDICTION"] = validation_predictions[selected_name]
+    validation_totals = validation_with_predictions.groupby("TARGET_TIME", as_index=False)[
+        [TARGET, "MODEL_PREDICTION"]
+    ].sum()
+    # Uyarı eşiği, son teste bakılmadan doğrulamadaki toplam güç hatasından seçilir.
+    alert_threshold = float(
+        (validation_totals[TARGET] - validation_totals["MODEL_PREDICTION"])
+        .abs()
+        .quantile(0.95)
+    )
+    validation_daytime = validation[validation["IRRADIATION"] > 0]
+    importance = grouped_feature_importance(
+        validation_model,
+        features.loc[validation_daytime.index],
+        validation_daytime[TARGET],
+    )
+
     selected_model = candidate_models()[selected_name]
     final_training = pd.concat([train, validation])
     selected_model.fit(features.loc[final_training.index], final_training[TARGET])
@@ -255,10 +405,33 @@ def main() -> None:
         plant_totals[TARGET], plant_totals["BASELINE_PREDICTION"]
     )
     plant_model = mean_absolute_error(plant_totals[TARGET], plant_totals["MODEL_PREDICTION"])
+    plant_totals["ABS_MODEL_ERROR"] = (
+        plant_totals[TARGET] - plant_totals["MODEL_PREDICTION"]
+    ).abs()
+    alert_count = int((plant_totals["ABS_MODEL_ERROR"] > alert_threshold).sum())
+    last_day = plant_totals["TARGET_TIME"].dt.date.max()
+    last_day_alerts = int(
+        (
+            plant_totals.loc[
+                plant_totals["TARGET_TIME"].dt.date == last_day,
+                "ABS_MODEL_ERROR",
+            ]
+            > alert_threshold
+        ).sum()
+    )
+    hourly_errors, inverter_hourly_errors = calculate_hourly_errors(test)
 
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     errors_path = REPORT_DIR / "inverter_errors.csv"
     inverter_errors.to_csv(errors_path, index=False, float_format="%.2f")
+    hourly_path = REPORT_DIR / "hourly_errors.csv"
+    hourly_errors.to_csv(hourly_path, index=False, float_format="%.2f")
+    inverter_hourly_path = REPORT_DIR / "inverter_hourly_errors.csv"
+    inverter_hourly_errors.to_csv(inverter_hourly_path, index=False, float_format="%.2f")
+    importance_path = REPORT_DIR / "feature_importance.csv"
+    importance.to_csv(importance_path, index=False, float_format="%.2f")
+    hourly_chart_path = save_hourly_chart(hourly_errors)
+    importance_chart_path = save_importance_chart(importance)
     chart_path = save_inverter_chart(inverter_errors)
     plant_chart_path = save_plant_chart(plant_totals)
     metrics = {
@@ -285,10 +458,21 @@ def main() -> None:
         "plant_time_points": int(len(plant_totals)),
         "plant_total_baseline_mae": float(plant_baseline),
         "plant_total_model_mae": float(plant_model),
+        "alert_threshold_p95_validation": alert_threshold,
+        "test_alert_count": alert_count,
+        "last_day_alert_count": last_day_alerts,
+        "feature_importance_validation_daytime_examples": int(len(validation_daytime)),
     }
     metrics_path = REPORT_DIR / "plant_metrics.json"
     metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
-    dashboard_data_path = save_dashboard_data(metrics, inverter_errors, plant_totals)
+    dashboard_data_path = save_dashboard_data(
+        metrics,
+        inverter_errors,
+        plant_totals,
+        hourly_errors,
+        inverter_hourly_errors,
+        importance,
+    )
 
     print("İnverter sayısı:", metrics["inverters"])
     print("Örnek sayısı:", metrics["examples"])
@@ -308,6 +492,14 @@ def main() -> None:
     print("Modelin iyileştirdiği inverter sayısı:", metrics["inverters_improved"])
     print("Toplam güç basit tahmin hatası:", round(plant_baseline, 2))
     print("Toplam güç model hatası:", round(plant_model, 2))
+    print("Büyük sapma eşiği (doğrulama %95):", round(alert_threshold, 2))
+    print("Testte büyük sapma sayısı:", alert_count)
+    print("Son günde büyük sapma sayısı:", last_day_alerts)
+    print("Gündüz değişken etkisi:", importance_path)
+    print("Saat bazında hata:", hourly_path)
+    print("İnverter ve saat bazında hata:", inverter_hourly_path)
+    print("Saatlik hata grafiği:", hourly_chart_path)
+    print("Girdi etkisi grafiği:", importance_chart_path)
     print("İnverter sonuçları:", errors_path)
     print("İnverter grafiği:", chart_path)
     print("Toplam güç grafiği:", plant_chart_path)

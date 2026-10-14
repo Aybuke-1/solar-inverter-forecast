@@ -40,6 +40,14 @@ Sonuçları incelemek için [etkileşimli bir web ekranı](../dashboard/index.ht
 
 [Tahmin simülasyonu](../dashboard/simulation.html), son test gününün ardışık kayıtlarını adım adım gösterir. Önce mevcut güç ve 15 dakika sonrası model tahmini, sonraki adımda gerçek sonuç ve mutlak hata açılır. Bu, kayıtlı test verisinin oynatımıdır; canlı ölçüm bağlantısı veya tarayıcıda yeniden model eğitimi içermez. Negatif model tahminleri, fiziksel güç sınırına uygun olması için sıfıra çekilmiştir.
 
+## Ek analizler ve operatör uyarısı
+
+[Model analizi ekranında](../dashboard/analysis.html) son test hataları saat ve inverter bazında incelenebilir. 06.00–18.00 hedef saatlerinde modelin en yüksek saatlik MAE değeri **14.00'te 209,81** olmuştur; aynı saatte basit tahminin MAE değeri **196,69**'dur. [Saatlik hata grafiği](figures/hourly_errors.png) ve [inverter-saat tablosu](inverter_hourly_errors.csv), modelin hangi koşullarda zorlandığını gösterir. Genel başarı, bütün saatlerde daha iyi olduğu anlamına gelmez.
+
+Model girdilerinin etkisi için seçilen model, yalnızca öğrenme verisinde eğitilmiş haliyle, **gündüz doğrulama kayıtlarında** değerlendirilmiştir. Her girdi grubu üç kez karıştırılıp hatadaki ortalama artış hesaplanmıştır. En yüksek artış güneş ışınımında **112,86**, anlık AC güçte **82,08** olmuştur. İnverter kimliğinin sayısal sütunları tek grup olarak karıştırılmıştır. [Girdi etkisi grafiği](figures/feature_importance.png) ve [tablosu](feature_importance.csv) tüm sonuçları içerir. Bağlantılı değişkenler nedeniyle bu sıralama kesin neden-sonuç açıklaması değildir.
+
+Simülasyondaki “Büyük sapma” uyarısı, 22 inverterin toplam tahmin gücü ile gerçekleşen toplam güç arasındaki mutlak farka bakar. Uyarı eşiği, son test kullanılmadan, doğrulama dönemindeki toplam güç hatalarının **%95 sınırı olan 6.055,28** değeridir. Son testteki **630 zaman noktasının 29'unda**, son test gününün **4 noktasında** eşik aşılmıştır. Bu, operatörün inceleme yapması için bir işarettir; veri setinde arıza etiketi olmadığı için arıza teşhisi değildir. Toplam güç farkı ile tek inverter MAE değeri farklı ölçeklerdedir.
+
 İlk aşamada tek inverter üzerinde yapılan deney [ayrı bir notta](ilk_deney.md) korunmuştur. Farklı veri bölme yöntemleri kullanıldığı için ilk deneyin sayısal sonuçları bu sonuçlarla doğrudan karşılaştırılmamalıdır.
 
 ## Sınırlamalar

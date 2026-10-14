@@ -22,6 +22,12 @@ Grafikte sağdaki yeşil çubuklar modelin daha iyi olduğu inverterleri, soldak
 
 [Tahmin simülasyonunu aç](dashboard/simulation.html) bağlantısı, son test gününün 07.00–23.45 arasındaki ardışık kayıtlarını hızlandırılmış biçimde oynatır. Başlat, duraklat, tek adım ilerlet, başa dön ve hız seçimi vardır. Her adımda mevcut ölçüm ile **15 dakika sonrası tahmin** gösterilir; gerçek güç ve o tahminin hatası ancak sonraki adımda açılır. Böylece sunumda tahmin süreci izlenebilir. Bu ekran da gerçek zamanlı santral bağlantısı kullanmaz; Python modelinin önceden hesapladığı test tahminlerini oynatır.
 
+[Model analizini aç](dashboard/analysis.html) bağlantısı, son testteki hatayı hedef saatine ve seçilen invertere göre karşılaştırır. 06.00–18.00 hedef saatlerinde modelin en yüksek ortalama hatası **14.00'te 209,81** oldu; o saatte basit tahminin hatası **196,69** idi. Genel toplamda model daha iyi olsa da her saatte üstün değildir. [Saatlik hata grafiği](reports/figures/hourly_errors.png), [saatlik CSV](reports/hourly_errors.csv) ve [inverter-saat CSV'si](reports/inverter_hourly_errors.csv) ayrıntıları gösterir.
+
+Girdi etkisi, **gündüz doğrulama verisinde** her girdi grubunun değerleri karıştırılarak ölçüldü. Karıştırınca model hatası en çok **güneş ışınımında +112,86** ve **anlık AC güçte +82,08** arttı. Bu, modelin bu bilgilere dayandığını gösterir; neden-sonuç kanıtı değildir. [Girdi etkisi grafiği](reports/figures/feature_importance.png) ve [CSV tablosu](reports/feature_importance.csv) diğer girdileri de içerir.
+
+Simülasyonda gerçekleşen toplam güç ile tahmin arasındaki fark, **6.055,28** değerini aşınca “Büyük sapma” uyarısı görünür. Eşik, son teste bakılmadan **doğrulama dönemindeki toplam güç mutlak hatalarının %95 sınırından** alındı. Son testteki 630 zaman noktasının 29'unda, oynatılan son günün 4 noktasında eşik aşıldı. Bu bir **inceleme işaretidir**; veri setinde arıza etiketi olmadığı için arıza teşhisi sayılmaz. Toplam güç eşiği, tek inverter MAE değeriyle aynı ölçekte değildir.
+
 `src/plant_model.py` çalıştırıldığında `dashboard/data.js` dosyası da yeniden üretilir. Bu dosyada ham CSV kayıtları yerine özet sonuçlar ve son test gününün toplam güç serisi bulunur. GitHub'a yüklendikten sonra bu statik ekran [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) ile de yayımlanabilir; yayımlama şu anda yapılmamıştır.
 
 ## Kullanılan yöntem
@@ -63,11 +69,14 @@ Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.
 | `src/plant_model.py` | 22 inverter için model karşılaştırma, test ve hata analizi |
 | `src/train_model.py` | Tek inverterli ilk geliştirme deneyi |
 | `src/inspect_data.py` | İlk veri incelemesi ve keşif deneyi |
-| `dashboard/` | Etkileşimli sonuç ekranı ve tarihsel tahmin simülasyonu |
+| `dashboard/` | Etkileşimli sonuç, model analizi ve tarihsel tahmin simülasyonu |
 | `index.html` | Statik site ana sayfası; dashboard'a yönlendirir |
 | `data/raw/README.md` | Ham veriyi indirme yönergesi |
 | `reports/proje_ozeti.md` | Ders için kısa yöntem ve sonuç anlatımı |
 | `reports/inverter_errors.csv` | İnverter başına test hataları |
+| `reports/hourly_errors.csv` | Hedef saate göre test hataları |
+| `reports/inverter_hourly_errors.csv` | İnverter ve hedef saate göre test hataları |
+| `reports/feature_importance.csv` | Gündüz doğrulama verisinde girdi grubu etkisi |
 | `reports/plant_metrics.json` | Tekrar üretilebilir deney sonuçları |
 | `reports/figures/` | Oluşturulan sonuç grafikleri |
 

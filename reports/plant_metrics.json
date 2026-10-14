@@ -22,5 +22,9 @@
   "inverters_improved": 20,
   "plant_time_points": 630,
   "plant_total_baseline_mae": 1153.8231207560095,
-  "plant_total_model_mae": 1097.8973024584773
+  "plant_total_model_mae": 1097.8973024584773,
+  "alert_threshold_p95_validation": 6055.276424789376,
+  "test_alert_count": 29,
+  "last_day_alert_count": 4,
+  "feature_importance_validation_daytime_examples": 7186
 }

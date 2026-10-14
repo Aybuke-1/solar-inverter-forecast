@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1728" />
+    <title>Solar Forecast | Model Analizi</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="data.js"></script>
+    <script defer src="analysis.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">☀</span> Solar Forecast</div>
+        <nav class="topbar-nav" aria-label="Sayfalar">
+          <a class="nav-link" href="index.html">← Sonuç ekranı</a>
+          <a class="nav-link" href="simulation.html">Simülasyon →</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="analysis-hero" aria-labelledby="analysis-title">
+        <p class="eyebrow">MODELİ ANLAMAK · HATA ANALİZİ</p>
+        <h1 id="analysis-title">Model <span>ne zaman yanılıyor?</span></h1>
+        <p class="hero-copy">Son test döneminde tahmin hatasını saat ve inverter bazında incele. Modelin hangi ölçümlere dayandığını, ayrıca büyük üretim sapması uyarısının nasıl belirlendiğini gör.</p>
+      </section>
+
+      <section class="analysis-summary" aria-label="Analiz özeti">
+        <article class="metric"><span>Testteki tahmin</span><strong id="analysis-examples">—</strong><small>22 inverter · son zaman dilimi</small></article>
+        <article class="metric"><span>En zor hedef saati</span><strong id="hardest-hour">—</strong><small id="hardest-error">Modelin en yüksek saatlik MAE değeri</small></article>
+        <article class="metric"><span>İncelenen girdi grubu</span><strong id="feature-count">—</strong><small>gündüz doğrulama kayıtlarında</small></article>
+        <article class="metric"><span>Büyük sapma eşiği</span><strong id="alert-threshold">—</strong><small>doğrulama hatalarının %95 sınırı</small></article>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="hourly-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SON TEST VERİSİ</p>
+            <h2 id="hourly-title">Saatlere göre tahmin hatası</h2>
+            <p class="muted">Her çubuk, o hedef saatindeki ortalama mutlak hatayı (MAE) gösterir. Kısa çubuk daha iyi tahmin demektir.</p>
+          </div>
+          <label class="select-label" for="analysis-inverter">İnverter seç
+            <select id="analysis-inverter"><option value="all">Tüm inverterler</option></select>
+          </label>
+        </div>
+        <label class="analysis-checkbox"><input type="checkbox" id="show-night" /> Gece saatlerini de göster</label>
+        <div class="analysis-legend"><span><i class="dot baseline"></i> Basit tahmin</span><span><i class="dot model"></i> Model</span></div>
+        <div id="hourly-bars" class="hourly-bars"></div>
+        <p id="hourly-insight" class="analysis-insight"></p>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="importance-title">
+        <p class="eyebrow">GÜNDÜZ DOĞRULAMA VERİSİ</p>
+        <h2 id="importance-title">Model hangi bilgilere dayanıyor?</h2>
+        <p class="muted">Bir bilginin değerlerini karıştırıp modelin hatasının ne kadar arttığını ölçtük. Büyük artış, modelin o bilgiden daha çok yararlandığını gösterir.</p>
+        <div id="importance-bars" class="importance-bars"></div>
+        <div class="analysis-note"><strong>Nasıl okunmalı?</strong> Bu değerler gündüz doğrulama kayıtlarından hesaplandı. Birbirine bağlı ölçümler nedeniyle kesin neden-sonuç ilişkisi göstermez; modelin kullandığı bilgileri anlamaya yardım eder.</div>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="alert-method-title">
+        <p class="eyebrow">OPERASYONEL YORUM</p>
+        <h2 id="alert-method-title">Büyük sapma uyarısı</h2>
+        <p>22 inverterin tahminleri ve gerçek güçleri toplanır. Aradaki fark, doğrulama dönemindeki toplam güç hatalarının <strong>%95 sınırını</strong> aşarsa simülasyonda “Büyük sapma” uyarısı çıkar.</p>
+        <p id="alert-summary" class="analysis-insight"></p>
+        <div class="analysis-note"><strong>Bu uyarı ne demek?</strong> Operatörün o zaman aralığını incelemesi için bir işarettir. Veri setinde doğrulanmış arıza etiketleri bulunmadığı için tek başına inverter arızası teşhisi değildir.</div>
+        <a class="primary-link" href="simulation.html">Uyarıları simülasyonda gör <span aria-hidden="true">→</span></a>
+      </section>
+
+      <footer>Solar Forecast · Kaggle Solar Power Generation Data · Akademik proje prototipi</footer>
+    </main>
+  </body>
+</html>

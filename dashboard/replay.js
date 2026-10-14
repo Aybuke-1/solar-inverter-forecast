@@ -7,6 +7,7 @@ const series = replayData.plant_series.filter((row) => row.time >= "07:00");
 const numberFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
 const decimalFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
 const svgNamespace = "http://www.w3.org/2000/svg";
+const alertThreshold = replayData.metrics.alert_threshold_p95_validation;
 
 let step = -1;
 let timer = null;
@@ -27,6 +28,9 @@ const elements = {
   progressFill: document.getElementById("progress-fill"),
   status: document.getElementById("replay-status"),
   chart: document.getElementById("replay-chart"),
+  alertBadge: document.getElementById("alert-badge"),
+  alertCount: document.getElementById("alert-count"),
+  alertExplanation: document.getElementById("alert-explanation"),
 };
 
 function formatPower(value) {
@@ -79,6 +83,13 @@ function drawChart() {
     const points = series.slice(0, lastIndex + 1).map((row, index) => `${x(index)},${y(row[kind])}`);
     chart.append(svgElement("polyline", { points: points.join(" "), class: `replay-line ${kind}` }));
     chart.append(svgElement("circle", { cx: x(lastIndex), cy: y(series[lastIndex][kind]), r: 6, class: `replay-point ${kind}` }));
+    if (kind === "actual") {
+      series.slice(0, lastIndex + 1).forEach((row, index) => {
+        if (Math.abs(row.actual - row.model) > alertThreshold) {
+          chart.append(svgElement("circle", { cx: x(index), cy: y(row.actual), r: 6, class: "replay-point warning" }));
+        }
+      });
+    }
     if (kind === "model" && step < series.length) {
       chart.append(svgElement("line", { x1: x(lastIndex), y1: top, x2: x(lastIndex), y2: bottom, class: "replay-cursor" }));
     }
@@ -98,6 +109,19 @@ function render() {
   elements.targetTime.textContent = current ? `Hedef saat: ${dateTime(0, current.time)}` : complete ? `Hedef saat: ${dateTime(0, series.at(-1).time)}` : "Hedef saat: —";
   elements.actualPower.textContent = previous ? formatPower(previous.actual) : "—";
   elements.previousError.textContent = previous ? `Mutlak hata: ${decimalFormat.format(Math.abs(previous.actual - previous.model))}` : "Mutlak hata: —";
+  const previousDifference = previous ? Math.abs(previous.actual - previous.model) : null;
+  const largeDeviation = previousDifference !== null && previousDifference > alertThreshold;
+  const direction = !previous ? "" : previous.actual === previous.model
+    ? "Gerçek güç tahmine eşit."
+    : previous.actual < previous.model ? "Gerçek güç tahminden düşük." : "Gerçek güç tahminden yüksek.";
+  const revealed = series.slice(0, Math.min(Math.max(step, 0), series.length));
+  const seenAlerts = revealed.filter((row) => Math.abs(row.actual - row.model) > alertThreshold).length;
+  elements.alertBadge.textContent = previous ? largeDeviation ? "Büyük sapma · incele" : "Normal aralık" : "Sonuç bekleniyor";
+  elements.alertBadge.className = `alert-badge ${previous ? largeDeviation ? "warning" : "normal" : "idle"}`;
+  elements.alertCount.textContent = `Görülen uyarı: ${seenAlerts}`;
+  elements.alertExplanation.textContent = previous
+    ? `${previous.time} ölçümünde tahmin farkı ${decimalFormat.format(previousDifference)}. ${direction} Doğrulama verisinden belirlenen uyarı eşiği ${decimalFormat.format(alertThreshold)}. ${largeDeviation ? "Sapma araştırılmalı; bu tek başına arıza teşhisi değildir." : "Fark uyarı eşiğinin altında."}`
+    : `Gerçek ölçüm açıldığında tahminle farkı kontrol edilecek. Uyarı eşiği: ${decimalFormat.format(alertThreshold)}.`;
   elements.progressText.textContent = complete ? `${series.length} tahminin sonucu görüldü · tamamlandı` : started ? `${step + 1} / ${series.length} tahmin gösterildi` : "Başlamaya hazır";
   elements.progressFill.style.width = `${started ? (complete ? 100 : ((step + 1) / series.length) * 100) : 0}%`;
   elements.status.textContent = complete ? "Son tahminin gerçek sonucu da açıldı. Baştan izlemek için Başa dön'e bas." : current ? `${dateTime(15, current.time)} ölçümüyle ${dateTime(0, current.time)} için tahmin yapıldı. Gerçek sonuç sonraki adımda açılacak.` : "Başlat'a basarak ilk tahmini gör.";
