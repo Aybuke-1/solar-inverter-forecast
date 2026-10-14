@@ -18,6 +18,7 @@
           <a class="nav-link" href="analysis.html">Model analizi <span aria-hidden="true">→</span></a>
           <a class="nav-link" href="simulation.html">Simülasyonu aç <span aria-hidden="true">→</span></a>
           <a class="nav-link" href="operations.html">Operasyon masası <span aria-hidden="true">→</span></a>
+          <a class="nav-link" href="http://127.0.0.1:8765/">Yerel ölçüm akışı <span aria-hidden="true">→</span></a>
         </nav>
       </div>
     </header>
@@ -67,6 +68,15 @@
           <p>Ani düşüş riskini, inverterler arası kıyası ve tarihsel olay kayıtlarını birlikte incele.</p>
         </div>
         <a class="primary-link" href="operations.html">Operasyon masasını aç <span aria-hidden="true">→</span></a>
+      </section>
+
+      <section class="simulation-invite panel" aria-labelledby="live-invite-title">
+        <div>
+          <p class="eyebrow">YEREL ÖLÇÜM AKIŞI</p>
+          <h2 id="live-invite-title">Cihaz mesajı geldiğinde model yeniden tahmin etsin</h2>
+          <p>Geçmiş ölçümleri yerel sunucuya sırayla gönder; Python modeli her mesajı işler. Önce <code>.\.venv\Scripts\python.exe src\live_demo.py</code> komutuyla sunucuyu başlat.</p>
+        </div>
+        <a class="primary-link" href="http://127.0.0.1:8765/">Akış ekranını aç <span aria-hidden="true">→</span></a>
       </section>
 
       <section class="panel chart-panel" aria-labelledby="plant-title">

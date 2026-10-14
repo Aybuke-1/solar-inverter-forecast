@@ -22,6 +22,20 @@ Grafikte sağdaki yeşil çubuklar modelin daha iyi olduğu inverterleri, soldak
 
 [Tahmin simülasyonunu aç](dashboard/simulation.html) bağlantısı, son test gününün 07.00–23.45 arasındaki ardışık kayıtlarını hızlandırılmış biçimde oynatır. Başlat, duraklat, tek adım ilerlet, başa dön ve hız seçimi vardır. Her adımda mevcut ölçüm ile **15 dakika sonrası tahmin** gösterilir; gerçek güç ve o tahminin hatası ancak sonraki adımda açılır. Böylece sunumda tahmin süreci izlenebilir. Bu ekran da gerçek zamanlı santral bağlantısı kullanmaz; Python modelinin önceden hesapladığı test tahminlerini oynatır.
 
+## Yerel cihaz ölçüm akışı demosu
+
+Statik simülasyondan ayrı olarak [yerel akış ekranı](dashboard/live.html) da bulunur. Bu ekranda 17 Haziran 2020 tarihli **ham ölçümler**, inverter/hava sensörü paketi biçiminde yerel sunucunun `POST /api/telemetry` adresine sırayla gönderilir. Python sunucusu **her paket geldiğinde kayıtlı modeli çalıştırır** ve 15 dakika sonrası tahmini üretir. Gerçek güç ve büyük sapma uyarısı yalnızca o saatin ölçüm paketi geldikten sonra açılır. Gündüz ani düşüş uyarısı için yalnızca ardışık son 15 dakika ölçümleri kullanılır. Bu bir **tarihsel cihaz akışı simülasyonudur**; gerçek santrale bağlı değildir.
+
+Önce ham CSV dosyalarını yerleştirip `src/plant_model.py` komutunu bir kez çalıştır. Bu işlem `models/` altında iki yerel model dosyası oluşturur. Ardından proje klasöründeyken:
+
+```powershell
+.\.venv\Scripts\python.exe src\live_demo.py
+```
+
+Terminalde gösterilen **http://127.0.0.1:8765/** adresini aç, **Akışı başlat** veya **Tek ölçüm gönder** düğmesini kullan. Duraklatma, başa dönme ve hız seçimi vardır. Sunucuyu durdurmak için terminalde `Ctrl+C` kullan. `dashboard/live.html` dosyasını doğrudan çift tıklayarak açmak yerine bu adresi kullan; model tarayıcıda değil Python sunucusunda çalışır. `models/` dosyaları Git'e eklenmez; GitHub'dan indiren biri aynı komutla yeniden üretir. Sunucu yalnızca bu bilgisayardaki `127.0.0.1` arayüzünde dinler.
+
+Bir cihaz ağ geçidi gelecekte aynı JSON biçiminde güncel ölçüm göndererek bu giriş noktasını kullanabilir. Bu projede fiziksel Arduino/ESP32, MQTT, dış ağ bağlantısı veya üretim güvenliği kurulumu yapılmadı; bunlar ayrı entegrasyon aşamalarıdır.
+
 [Model analizini aç](dashboard/analysis.html) bağlantısı, son testteki hatayı hedef saatine ve seçilen invertere göre karşılaştırır. 06.00–18.00 hedef saatlerinde modelin en yüksek ortalama hatası **14.00'te 209,81** oldu; o saatte basit tahminin hatası **196,69** idi. Genel toplamda model daha iyi olsa da her saatte üstün değildir. [Saatlik hata grafiği](reports/figures/hourly_errors.png), [saatlik CSV](reports/hourly_errors.csv) ve [inverter-saat CSV'si](reports/inverter_hourly_errors.csv) ayrıntıları gösterir.
 
 Girdi etkisi, **gündüz doğrulama verisinde** her girdi grubunun değerleri karıştırılarak ölçüldü. Karıştırınca model hatası en çok **güneş ışınımında +112,86** ve **anlık AC güçte +82,08** arttı. Bu, modelin bu bilgilere dayandığını gösterir; neden-sonuç kanıtı değildir. [Girdi etkisi grafiği](reports/figures/feature_importance.png) ve [CSV tablosu](reports/feature_importance.csv) diğer girdileri de içerir.
@@ -70,6 +84,8 @@ Ardından tüm santral deneyini çalıştır:
 
 Komut doğrulama ve test sonuçlarını terminale yazar; tahmin, risk ve filo kıyası raporlarını, `reports/figures/` altındaki grafikleri ve iki dashboard veri dosyasını oluşturur. Önceki tek inverter deneyini görmek istersen `src/train_model.py`, ilk veri kontrolü için `src/inspect_data.py` çalıştırabilirsin.
 
+Yerel akış ekranı için aynı komut iki kayıtlı model dosyası da oluşturur. Sonra `src/live_demo.py` komutunu çalıştırıp yukarıdaki yerel adresi açabilirsin.
+
 Zaman aralığı ve filo olayı kurallarını kontrol etmek için:
 
 ```powershell
@@ -82,9 +98,11 @@ Zaman aralığı ve filo olayı kurallarını kontrol etmek için:
 | --- | --- |
 | `src/plant_model.py` | 22 inverter için model karşılaştırma, test ve hata analizi |
 | `src/operations_model.py` | Ani düşüş riski, inverter kıyası ve operatör olay kaydı |
+| `src/live_demo.py` | Yerel HTTP ölçüm alıcısı, anlık model çalıştırma ve tarihsel cihaz akışı |
 | `src/train_model.py` | Tek inverterli ilk geliştirme deneyi |
 | `src/inspect_data.py` | İlk veri incelemesi ve keşif deneyi |
 | `tests/test_operations.py` | Geçmiş ölçüm ve kesintisiz filo olayı kontrolleri |
+| `tests/test_live_demo.py` | Akışın zaman sırası, gelecek veriyi gizleme ve paket doğrulama kontrolleri |
 | `dashboard/` | Sonuç, model analizi, simülasyon ve operasyon masası |
 | `index.html` | Statik site ana sayfası; dashboard'a yönlendirir |
 | `data/raw/README.md` | Ham veriyi indirme yönergesi |

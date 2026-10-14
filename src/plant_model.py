@@ -7,6 +7,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
@@ -361,6 +362,18 @@ def main() -> None:
     selected_model = candidate_models()[selected_name]
     final_training = pd.concat([train, validation])
     selected_model.fit(features.loc[final_training.index], final_training[TARGET])
+    model_dir = PROJECT_DIR / "models"
+    model_dir.mkdir(exist_ok=True)
+    joblib.dump(
+        {
+            "model": selected_model,
+            "columns": features.columns.tolist(),
+            "source_keys": sorted(dataset["SOURCE_KEY"].unique().tolist()),
+            "selected_name": selected_name,
+            "alert_threshold": alert_threshold,
+        },
+        model_dir / "forecast_bundle.joblib",
+    )
     test["MODEL_PREDICTION"] = np.maximum(
         selected_model.predict(features.loc[test.index]), 0
     )

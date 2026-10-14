@@ -2,6 +2,7 @@
 data/raw/*.csv
 data/processed/
 .venv/
+models/
 .tmp/
 .cache/
 __pycache__/

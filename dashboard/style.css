@@ -12,6 +12,30 @@
   --red: #ef7b7b;
 }
 
+/* Yerel cihaz akışı demosu */
+.live-page { padding-bottom: 60px; }
+.live-hero { padding: 52px 0 28px; }
+.live-hero h1 { max-width: 850px; }
+.live-hero .replay-notice { margin-top: 24px; }
+.live-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+.live-metrics .metric { min-height: 160px; }
+.live-metrics .metric strong { font-size: clamp(25px, 3vw, 40px); }
+.live-two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+.live-insight { min-height: 200px; }
+.live-insight-number { display: block; margin: 4px 0 10px; font-size: 38px; line-height: 1.1; color: var(--orange); }
+.live-insight p { margin-bottom: 8px; }
+.live-insight small { color: var(--muted); }
+.live-chart-panel, .live-event-panel { margin-bottom: 22px; }
+.live-legend { display: flex; gap: 20px; color: var(--muted); font-size: 13px; }
+.live-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.live-chart-wrap { width: 100%; overflow-x: auto; margin-top: 10px; }
+.live-chart-wrap svg { display: block; min-width: 650px; width: 100%; height: auto; }
+.live-events { display: grid; gap: 8px; color: var(--muted); }
+.live-event { display: flex; gap: 14px; align-items: baseline; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; }
+.live-event strong { color: var(--orange); min-width: 50px; }
+@media (max-width: 900px) { .live-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .live-metrics, .live-two-column { grid-template-columns: 1fr; } .live-hero { padding-top: 34px; } }
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: radial-gradient(circle at 75% -10%, #173552 0, transparent 32%), var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, Segoe UI, sans-serif; }

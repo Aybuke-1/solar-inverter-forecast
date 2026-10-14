@@ -40,6 +40,12 @@ Sonuçları incelemek için [etkileşimli bir web ekranı](../dashboard/index.ht
 
 [Tahmin simülasyonu](../dashboard/simulation.html), son test gününün ardışık kayıtlarını adım adım gösterir. Önce mevcut güç ve 15 dakika sonrası model tahmini, sonraki adımda gerçek sonuç ve mutlak hata açılır. Bu, kayıtlı test verisinin oynatımıdır; canlı ölçüm bağlantısı veya tarayıcıda yeniden model eğitimi içermez. Negatif model tahminleri, fiziksel güç sınırına uygun olması için sıfıra çekilmiştir.
 
+## Yerel ölçüm akışı prototipi
+
+Ayrı bir [akış ekranında](../dashboard/live.html), son test günündeki ham üretim ve hava ölçümleri cihaz ağ geçidi mesajı biçiminde **yerel HTTP sunucusuna** sırayla gönderilir. Kayıtlı Python tahmin modeli her yeni mesaj geldiğinde çalışır; önceki tahminin gerçek sonucu yalnızca ilgili sonraki ölçüm geldiğinde hesaplanır. Böylece önceden hesaplanmış sonuçları oynatan statik ekrandan farklı olarak veri alma, anlık çıkarım ve sonuç izleme adımları gösterilir. Ani düşüş modeli yalnızca gündüz ve tam 15 dakika önceki ölçüm mevcutken uyarı üretir. Büyük sapma kaydı gerçek ölçümün ardından oluşur.
+
+Bu prototipte ölçümler **17 Haziran 2020 geçmiş verisidir**; gerçek zamanlı santral veya fiziksel cihaz bağlantısı kurulmamıştır. Sunucu yalnızca yerel bilgisayarda çalışır. Ders sunumunda `src/plant_model.py` ile modelleri oluşturup `src/live_demo.py` komutunu çalıştırdıktan sonra `http://127.0.0.1:8765/` adresi açılarak akış gösterilebilir.
+
 ## Ek analizler ve operatör uyarısı
 
 [Model analizi ekranında](../dashboard/analysis.html) son test hataları saat ve inverter bazında incelenebilir. 06.00–18.00 hedef saatlerinde modelin en yüksek saatlik MAE değeri **14.00'te 209,81** olmuştur; aynı saatte basit tahminin MAE değeri **196,69**'dur. [Saatlik hata grafiği](figures/hourly_errors.png) ve [inverter-saat tablosu](inverter_hourly_errors.csv), modelin hangi koşullarda zorlandığını gösterir. Genel başarı, bütün saatlerde daha iyi olduğu anlamına gelmez.

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -58,6 +59,7 @@ def train_ramp_risk(
     train: pd.DataFrame,
     validation: pd.DataFrame,
     test: pd.DataFrame,
+    model_dir: Path | None = None,
 ) -> tuple[dict, pd.DataFrame]:
     """Gelecek 15 dakikadaki büyük güç düşüşünü ayrı bir modelle öngör."""
     data = add_recent_changes(dataset)
@@ -99,6 +101,17 @@ def train_ramp_risk(
     final_model = new_model()
     training_day = pd.concat([train_day, validation_day])
     final_model.fit(features.loc[training_day.index], labels(training_day))
+    if model_dir is not None:
+        model_dir.mkdir(exist_ok=True)
+        joblib.dump(
+            {
+                "model": final_model,
+                "columns": features.columns.tolist(),
+                "drop_limit": drop_limit,
+                "risk_score_limit": score_limit,
+            },
+            model_dir / "risk_bundle.joblib",
+        )
     test_scores = final_model.predict_proba(features.loc[test_day.index])[:, 1]
     test_labels = labels(test_day)
     test_flags = test_scores >= score_limit
@@ -315,7 +328,7 @@ def build_operations(
     report_dir = project_dir / "reports"
     dashboard_dir = project_dir / "dashboard"
     figure_dir = report_dir / "figures"
-    risk_metrics, risk = train_ramp_risk(dataset, train, validation, test)
+    risk_metrics, risk = train_ramp_risk(dataset, train, validation, test, project_dir / "models")
     radar, peer_summary, episodes = calculate_peer_radar(train, test)
     events = make_events(test, totals, alert_threshold, risk, episodes)
     risk_chart = save_risk_chart(risk, risk_metrics, figure_dir)

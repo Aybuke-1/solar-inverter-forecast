@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1728" />
+    <title>Solar Forecast | Yerel Ölçüm Akışı</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="live.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">☀</span> Solar Forecast</div>
+        <nav class="topbar-nav" aria-label="Sayfalar">
+          <a class="nav-link" href="index.html">← Sonuç ekranı</a>
+          <span class="topbar-tag">Plant 1 · Yerel akış</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container live-page">
+      <section class="live-hero">
+        <p class="eyebrow">CİHAZ PAKETİ → PYTHON MODELİ → OPERATÖR EKRANI</p>
+        <h1>Ölçüm geldiğinde <span>tahmin başlar.</span></h1>
+        <p class="hero-copy">Geçmişte kaydedilmiş inverter ve hava ölçümleri yerel sunucuya birer mesaj olarak gelir. Model, her yeni mesajda 15 dakika sonrasını tahmin eder. Gerçek sonuç ancak sonraki ölçüm ulaştığında görünür.</p>
+        <div class="replay-notice"><strong>Bu bir tarihsel akış simülasyonudur.</strong> Fiziksel santral bağlantısı yoktur. Üretim ve ışınım verileri 17 Haziran 2020 kayıtlarından gelir; tahminler bu sayfa açıldıktan sonra Python modelinde hesaplanır.</div>
+      </section>
+
+      <section class="panel replay-controls" aria-label="Akış kontrolleri">
+        <div class="control-buttons">
+          <button id="start-button" class="primary-button" type="button">▶ Akışı başlat</button>
+          <button id="step-button" class="secondary-button" type="button">Tek ölçüm gönder</button>
+          <button id="reset-button" class="secondary-button" type="button">Başa dön</button>
+        </div>
+        <label class="speed-control" for="speed-select">Mesaj aralığı
+          <select id="speed-select">
+            <option value="2000">Yavaş · 2 sn</option>
+            <option value="1000" selected>Normal · 1 sn</option>
+            <option value="500">Hızlı · 0,5 sn</option>
+          </select>
+        </label>
+        <div class="replay-progress" aria-live="polite">
+          <span id="progress-text">Ölçüm bekleniyor</span>
+          <div class="progress-track"><div id="progress-fill"></div></div>
+        </div>
+        <p id="connection-state" class="muted">Yerel sunucuya bağlanılıyor…</p>
+      </section>
+
+      <section class="live-metrics" aria-label="Güncel durum">
+        <article class="metric"><span>Gelen ölçüm</span><strong id="current-time">—</strong><small id="current-meta">Henüz mesaj yok</small></article>
+        <article class="metric"><span>Şu anki toplam AC güç</span><strong id="current-power">—</strong><small id="irradiation">Işınım: —</small></article>
+        <article class="metric focus-metric"><span>15 dakika sonrası tahmin</span><strong id="forecast-power">—</strong><small id="target-time">Hedef: —</small></article>
+        <article class="metric"><span>Önceki tahminin sonucu</span><strong id="actual-power">—</strong><small id="previous-error">Sonraki mesaj bekleniyor</small></article>
+      </section>
+
+      <section class="live-two-column">
+        <article class="panel live-insight">
+          <p class="eyebrow">ÖNCEDEN ÜRETİLEN SİNYAL</p>
+          <h2>Ani düşüş riski</h2>
+          <strong id="risk-count" class="live-insight-number">—</strong>
+          <p id="risk-description" class="muted">Ardışık gündüz ölçümü gelince risk modeli çalışır.</p>
+          <small>Risk uyarısı kesin arıza teşhisi değildir.</small>
+        </article>
+        <article class="panel live-insight">
+          <p class="eyebrow">SONUÇ GELİNCE KONTROL</p>
+          <h2>Büyük tahmin sapması</h2>
+          <strong id="deviation-state" class="live-insight-number">—</strong>
+          <p id="deviation-description" class="muted">Gerçek ölçüm gelince tahminle farkı hesaplanır.</p>
+          <small id="event-count">Görülen olay: 0</small>
+        </article>
+      </section>
+
+      <section class="panel live-chart-panel">
+        <p class="eyebrow">AKIŞ İLERLEDİKÇE ÇİZİLİR</p>
+        <h2>Toplam AC güç</h2>
+        <p class="muted">Turuncu: önceki mesajda yapılan tahmin. Mavi: zamanı gelip alınan gerçek ölçüm. Kesik çizgi: henüz sonucu gelmeyen tahmin.</p>
+        <div class="live-legend"><span><i class="dot model"></i> Tahmin</span><span><i class="dot actual"></i> Gerçek</span></div>
+        <div class="live-chart-wrap"><svg id="live-chart" viewBox="0 0 900 260" role="img" aria-label="Akışta açıklanan tahmin ve gerçek güç grafiği"></svg></div>
+      </section>
+
+      <section class="panel live-event-panel">
+        <p class="eyebrow">OPERATÖR KAYDI</p>
+        <h2>Akış sırasında oluşan olaylar</h2>
+        <p class="muted">Büyük sapma yalnızca ilgili saatin gerçek ölçümü geldikten sonra kaydedilir.</p>
+        <div id="live-events" class="live-events">Henüz olay yok.</div>
+      </section>
+    </main>
+  </body>
+</html>
