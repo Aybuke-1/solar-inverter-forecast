@@ -1,0 +1,10 @@
+# Veri ve yerel çalışma dosyaları
+data/raw/*.csv
+data/processed/
+.venv/
+.tmp/
+.cache/
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+.DS_Store
