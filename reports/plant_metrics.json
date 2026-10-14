@@ -1,0 +1,26 @@
+{
+  "inverters": 22,
+  "examples": 68420,
+  "train_examples": 40812,
+  "validation_examples": 13704,
+  "test_examples": 13860,
+  "validation_baseline_mae": 66.45165480084866,
+  "validation_model_mae": {
+    "Random Forest": 60.4854820797215,
+    "Gradient Boosting": 59.64962929366033
+  },
+  "selected_model": "Gradient Boosting",
+  "test_baseline_mae": 54.56233186502785,
+  "test_model_mae": 51.95428438821926,
+  "daytime_test_examples": 7766,
+  "daytime_baseline_mae": 97.37676042171002,
+  "daytime_model_mae": 92.34272506882995,
+  "large_change_threshold": 189.31160740000007,
+  "large_change_test_examples": 1174,
+  "large_change_baseline_mae": 293.9014373938671,
+  "large_change_model_mae": 263.7017595143339,
+  "inverters_improved": 20,
+  "plant_time_points": 630,
+  "plant_total_baseline_mae": 1153.8231207560095,
+  "plant_total_model_mae": 1098.3293409353764
+}
