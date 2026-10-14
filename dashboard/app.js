@@ -29,13 +29,15 @@ function renderChart() {
     actual: true,
     model: document.querySelector('[data-series="model"]').checked,
     baseline: document.querySelector('[data-series="baseline"]').checked,
+    interval: document.querySelector('[data-series="interval"]').checked,
   };
   const width = 960;
   const height = 360;
   const margin = { left: 72, right: 18, top: 16, bottom: 43 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
-  const keys = Object.keys(visible).filter((key) => visible[key]);
+  const keys = ["actual", "model", "baseline"].filter((key) => visible[key]);
+  if (visible.interval) keys.push("upper");
   const maximum = Math.max(...series.flatMap((row) => keys.map((key) => row[key]))) * 1.08 || 1;
   const x = (index) => margin.left + (index / (series.length - 1)) * plotWidth;
   const y = (value) => margin.top + plotHeight - (value / maximum) * plotHeight;
@@ -46,6 +48,12 @@ function renderChart() {
     const position = y(value);
     svg.appendChild(svgElement("line", { x1: margin.left, x2: width - margin.right, y1: position, y2: position, stroke: "#31485f", "stroke-width": 1 }));
     addSvgText(svg, integer.format(value), { x: margin.left - 10, y: position + 4, "text-anchor": "end", fill: "#9bb0c5", "font-size": 12 });
+  }
+
+  if (visible.interval && series.every((row) => Number.isFinite(row.lower) && Number.isFinite(row.upper))) {
+    const forward = series.map((row, index) => `${index ? "L" : "M"}${x(index).toFixed(2)},${y(row.upper).toFixed(2)}`).join(" ");
+    const backward = [...series].reverse().map((row, reversedIndex) => `L${x(series.length - 1 - reversedIndex).toFixed(2)},${y(row.lower).toFixed(2)}`).join(" ");
+    svg.appendChild(svgElement("path", { d: `${forward} ${backward} Z`, fill: "#ffb15b", "fill-opacity": ".19", stroke: "none" }));
   }
 
   for (let tick = 0; tick <= 4; tick += 1) {
@@ -87,6 +95,11 @@ function showChartTooltip(event) {
   for (const [label, value] of [["Gerçek", point.actual], ["Model", point.model], ["Basit tahmin", point.baseline]]) {
     const line = document.createElement("div");
     line.textContent = `${label}: ${integer.format(value)}`;
+    tooltip.appendChild(line);
+  }
+  if (Number.isFinite(point.lower) && Number.isFinite(point.upper)) {
+    const line = document.createElement("div");
+    line.textContent = `Tahmin aralığı: ${integer.format(point.lower)}–${integer.format(point.upper)}`;
     tooltip.appendChild(line);
   }
   tooltip.hidden = false;

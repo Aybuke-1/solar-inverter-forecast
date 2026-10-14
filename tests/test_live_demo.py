@@ -59,6 +59,13 @@ class LiveDemoTests(unittest.TestCase):
         self.assertEqual(second["current"]["risk_ids"], ["A"])
         self.assertEqual(len(second["events"]), 1)
 
+    def test_live_interval_uses_only_current_total_power(self):
+        self.engine.interval = {"edges": [150], "widths": [5, 10, 40]}
+        state = self.engine.receive(packet("2020-06-17T10:00:00", 100, 100))
+        self.assertEqual(state["current"]["lower"], 180)
+        self.assertEqual(state["current"]["upper"], 260)
+        self.assertIsNone(state["revealed"])
+
     def test_gap_does_not_compare_old_forecast_or_use_stale_risk_input(self):
         self.engine.receive(packet("2020-06-17T10:00:00", 100, 100))
         state = self.engine.receive(packet("2020-06-17T10:45:00", 50, 100))

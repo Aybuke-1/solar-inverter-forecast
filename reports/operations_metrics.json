@@ -20,5 +20,6 @@
   "peer_inverters": 2,
   "operator_events": 30,
   "deviation_events": 29,
-  "peer_incidents": 1
+  "peer_incidents": 1,
+  "priority_inverters": 2
 }

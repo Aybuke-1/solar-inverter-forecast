@@ -61,6 +61,32 @@
         <div class="analysis-note"><strong>Yorum:</strong> Düşük göreli güç; planlı duruş, gölgelenme, iletişim veya başka bir nedenle oluşabilir. Bu veri nedenini doğrulamaz.</div>
       </section>
 
+      <section class="panel analysis-panel" aria-labelledby="priority-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">İNCELEME SIRASI</p>
+            <h2 id="priority-title">Önce hangi invertere bakmalı?</h2>
+            <p class="muted">Sıralama, test döneminde filonun belirgin altında geçirilen uzun olayların toplam süresine dayanır. Kısa sapmalar ayrı gösterilir; bu bir arıza sıralaması değildir.</p>
+          </div>
+          <label class="select-label" for="priority-select">İnverter seç
+            <select id="priority-select"></select>
+          </label>
+        </div>
+        <div class="priority-layout">
+          <div id="priority-list" class="priority-list"></div>
+          <div class="priority-detail">
+            <span id="priority-status" class="status">—</span>
+            <h3 id="priority-id">—</h3>
+            <p id="priority-explanation" class="muted"></p>
+            <div id="priority-facts" class="priority-facts"></div>
+            <p id="priority-chart-label" class="muted"></p>
+            <div class="priority-chart-wrap"><svg id="priority-chart" viewBox="0 0 690 250" role="img" aria-label="Seçilen inverterin filo medyanına göre üretim oranı"></svg></div>
+            <p class="chart-note">1,00 = filo medyanına eşit; 0,70 altı düşük ölçüm. Grafik yalnızca üretimin güçlü olduğu saatleri gösterir.</p>
+          </div>
+        </div>
+        <div class="analysis-note"><strong>Nasıl yorumlanmalı?</strong> Sıralama ölçülen güç ve aynı saatteki diğer inverterlere dayanır. Model hatası ayrıca gösterilir; yüksek hata tek başına cihaz sorunu demek değildir. Kurulu kapasite ve arıza etiketleri bilinmiyor.</div>
+      </section>
+
       <section class="panel analysis-panel" aria-labelledby="events-title">
         <div class="section-heading">
           <div>

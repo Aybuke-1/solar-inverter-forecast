@@ -79,6 +79,14 @@ function initializeAnalysis() {
   document.getElementById("feature-count").textContent = String(analysisData.feature_importance.length);
   document.getElementById("alert-threshold").textContent = integerFormat.format(metrics.alert_threshold_p95_validation);
   document.getElementById("alert-summary").textContent = `Bu eşik son testteki ${integerFormat.format(metrics.plant_time_points)} zaman noktasının ${metrics.test_alert_count} tanesinde aşıldı. Simülasyonda oynatılan son günde ${metrics.last_day_alert_count} büyük sapma var.`;
+  if (metrics.interval_test_coverage !== undefined) {
+    document.getElementById("interval-coverage").textContent = `${Math.round(metrics.interval_test_coverage * 100)}%`;
+    document.getElementById("interval-count").textContent = `${integerFormat.format(metrics.interval_test_points)} test noktası`;
+    document.getElementById("interval-daytime").textContent = `${Math.round(metrics.interval_daytime_coverage * 100)}%`;
+    document.getElementById("interval-daytime-count").textContent = `${integerFormat.format(metrics.interval_daytime_points)} gündüz noktası`;
+    document.getElementById("interval-width").textContent = integerFormat.format(metrics.interval_mean_width);
+    document.getElementById("interval-reading").textContent = `Doğrulama hatalarından hedeflenen kapsama %${Math.round(metrics.interval_target_coverage * 100)}; son testte gözlenen %${(metrics.interval_test_coverage * 100).toFixed(1).replace(".", ",")}. Gerçekte aralığın tutma oranını test verisi gösterir; hedef oranı garanti saymayız.`;
+  }
 
   const select = document.getElementById("analysis-inverter");
   for (const inverter of analysisData.inverters) {

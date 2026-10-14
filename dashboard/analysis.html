@@ -35,6 +35,20 @@
         <article class="metric"><span>Büyük sapma eşiği</span><strong id="alert-threshold">—</strong><small>doğrulama hatalarının %95 sınırı</small></article>
       </section>
 
+      <section class="panel analysis-panel" aria-labelledby="interval-title">
+        <p class="eyebrow">SANTRAL TOPLAMI · 15 DAKİKA SONRASI</p>
+        <h2 id="interval-title">Model tahmini ne kadar belirsiz?</h2>
+        <p class="muted">Geçmiş doğrulama hatası, o andaki santral güç düzeyine göre ölçüldü. Bu hatayla tahminin çevresine bir aralık çizildi; aşağıda ayrı tutulan son testte ne kadar tuttuğu gösterilir.</p>
+        <div class="operation-facts">
+          <div><span>Son testte aralıkta kalan</span><strong id="interval-coverage">—</strong><small id="interval-count">—</small></div>
+          <div><span>Gündüz aralıkta kalan</span><strong id="interval-daytime">—</strong><small id="interval-daytime-count">—</small></div>
+          <div><span>Ortalama aralık genişliği</span><strong id="interval-width">—</strong><small>toplam AC güç ölçeğinde</small></div>
+        </div>
+        <p id="interval-reading" class="analysis-insight"></p>
+        <img class="report-figure" src="../reports/figures/plant_interval_last_day.png" alt="Son test gününde gerçek toplam AC güç, model tahmini ve tahmin aralığı" />
+        <div class="analysis-note"><strong>Nasıl okunmalı?</strong> Bu aralık kesin sınır veya garanti değildir. Modeller geçmiş dönemde eğitildi; kapsama oranı yalnızca ayrılmış test döneminde ölçüldü. Başka santral ve mevsimlerde değişebilir.</div>
+      </section>
+
       <section class="panel analysis-panel" aria-labelledby="hourly-title">
         <div class="section-heading">
           <div>

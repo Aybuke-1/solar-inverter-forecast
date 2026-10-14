@@ -307,6 +307,8 @@ def save_dashboard_data(
                 "actual": round(float(row.NEXT_AC_POWER), 2),
                 "model": round(float(row.MODEL_PREDICTION), 2),
                 "baseline": round(float(row.BASELINE_PREDICTION), 2),
+                "lower": round(float(row.LOWER_BOUND), 2),
+                "upper": round(float(row.UPPER_BOUND), 2),
             }
             for row in last_day_totals.itertuples(index=False)
         ],
@@ -447,6 +449,11 @@ def main() -> None:
     importance_chart_path = save_importance_chart(importance)
     chart_path = save_inverter_chart(inverter_errors)
     plant_chart_path = save_plant_chart(plant_totals)
+    from uncertainty import build_uncertainty
+
+    uncertainty_metrics = build_uncertainty(
+        validation_with_predictions, test, plant_totals, PROJECT_DIR
+    )
     metrics = {
         "inverters": int(dataset["SOURCE_KEY"].nunique()),
         "examples": int(len(dataset)),
@@ -475,6 +482,7 @@ def main() -> None:
         "test_alert_count": alert_count,
         "last_day_alert_count": last_day_alerts,
         "feature_importance_validation_daytime_examples": int(len(validation_daytime)),
+        **uncertainty_metrics,
     }
     metrics_path = REPORT_DIR / "plant_metrics.json"
     metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -505,6 +513,7 @@ def main() -> None:
     print("Modelin iyileştirdiği inverter sayısı:", metrics["inverters_improved"])
     print("Toplam güç basit tahmin hatası:", round(plant_baseline, 2))
     print("Toplam güç model hatası:", round(plant_model, 2))
+    print("Tahmin aralığı son test kapsaması:", round(uncertainty_metrics["interval_test_coverage"] * 100, 1), "%")
     print("Büyük sapma eşiği (doğrulama %95):", round(alert_threshold, 2))
     print("Testte büyük sapma sayısı:", alert_count)
     print("Son günde büyük sapma sayısı:", last_day_alerts)

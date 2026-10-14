@@ -26,5 +26,19 @@
   "alert_threshold_p95_validation": 6055.276424789376,
   "test_alert_count": 29,
   "last_day_alert_count": 4,
-  "feature_importance_validation_daytime_examples": 7186
+  "feature_importance_validation_daytime_examples": 7186,
+  "interval_target_coverage": 0.8,
+  "interval_test_coverage": 0.7333333333333333,
+  "interval_daytime_coverage": 0.8158640226628895,
+  "interval_test_points": 630,
+  "interval_daytime_points": 353,
+  "interval_mean_width": 4174.884060869384,
+  "interval_daytime_mean_width": 7430.698050459795,
+  "interval_validation_groups": [
+    304,
+    78,
+    78,
+    78,
+    79
+  ]
 }

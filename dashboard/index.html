@@ -89,6 +89,7 @@
           <div class="legend" aria-label="Grafikteki çizgiler">
             <label><input type="checkbox" data-series="actual" checked disabled /><i class="dot actual"></i>Gerçek</label>
             <label><input type="checkbox" data-series="model" checked /><i class="dot model"></i>Model</label>
+            <label><input type="checkbox" data-series="interval" checked /><i class="dot interval"></i>Tahmin aralığı</label>
             <label><input type="checkbox" data-series="baseline" checked /><i class="dot baseline"></i>Basit tahmin</label>
           </div>
         </div>
@@ -96,7 +97,7 @@
           <svg id="power-chart" viewBox="0 0 960 360" role="img" aria-label="Son test gününde gerçek ve tahmini toplam inverter gücü"></svg>
           <div id="chart-tooltip" class="chart-tooltip" hidden></div>
         </div>
-        <p class="chart-note">Çizgilerin üzerine gelerek saatlik değerleri gör. Bu, geçmiş test verisidir; canlı santral izlemesi değildir.</p>
+        <p class="chart-note">Turuncu alan 15 dakika sonrası toplam AC güç için tahmin aralığıdır. Çizgilerin üzerine gelerek değerleri gör. Bu, geçmiş test verisidir.</p>
       </section>
 
       <section class="detail-grid">

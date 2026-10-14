@@ -210,6 +210,62 @@ def append_episode(inverter: str, run: list, rows: list[dict]) -> None:
     )
 
 
+def build_priority(radar: pd.DataFrame, summary: pd.DataFrame, episodes: pd.DataFrame,
+                   test: pd.DataFrame, report_dir: Path) -> tuple[pd.DataFrame, dict]:
+    """Uzun filo ayrışmalarını süreye göre inceleme sırasına koy; seçilebilir zaman çizgisi hazırla."""
+    errors = test.assign(absolute_error=(test[TARGET] - test["MODEL_PREDICTION"]).abs())
+    mae_by_inverter = errors.groupby("SOURCE_KEY")["absolute_error"].mean().to_dict()
+    priority_rows = []
+    series = {}
+    last_day = radar["TARGET_TIME"].dt.date.max()
+    for row in summary.itertuples(index=False):
+        inverter = row.SOURCE_KEY
+        own_episodes = episodes[episodes["inverter"] == inverter]
+        total_minutes = int(own_episodes["duration_minutes"].sum())
+        longest_minutes = int(own_episodes["duration_minutes"].max()) if not own_episodes.empty else 0
+        if not own_episodes.empty:
+            selected_day = own_episodes.sort_values(
+                ["duration_minutes", "start"], ascending=[False, True]
+            ).iloc[0]["start"].date()
+        else:
+            own_lows = radar[(radar["SOURCE_KEY"] == inverter) & radar["low_relative_power"]]
+            counts = own_lows.groupby(own_lows["TARGET_TIME"].dt.date).size()
+            selected_day = counts.idxmax() if not counts.empty else last_day
+        status = "Öncelikli inceleme" if total_minutes else "İzle" if row.low_points else "Normal"
+        priority_rows.append({
+            "SOURCE_KEY": inverter, "priority": status,
+            "episodes": int(row.episodes), "episode_minutes": total_minutes,
+            "longest_minutes": longest_minutes, "low_points": int(row.low_points),
+            "eligible_points": int(row.eligible_points),
+            "worst_ratio": float(row.worst_ratio) if pd.notna(row.worst_ratio) else np.nan,
+            "model_mae": float(mae_by_inverter[inverter]),
+            "chart_day": str(selected_day),
+        })
+        chosen = radar[
+            (radar["SOURCE_KEY"] == inverter)
+            & (radar["TARGET_TIME"].dt.date == selected_day)
+            & radar["eligible"]
+        ].sort_values("TARGET_TIME")
+        series[inverter] = {
+            "day": str(selected_day),
+            "points": [
+                {"time": item.TARGET_TIME.strftime("%H:%M"),
+                 "ratio": round(float(item.peer_ratio), 3),
+                 "low": bool(item.low_relative_power)}
+                for item in chosen.itertuples(index=False) if pd.notna(item.peer_ratio)
+            ],
+        }
+    priority = pd.DataFrame(priority_rows)
+    order = {"Öncelikli inceleme": 0, "İzle": 1, "Normal": 2}
+    priority["sort_key"] = priority["priority"].map(order)
+    priority = priority.sort_values(
+        ["sort_key", "episode_minutes", "low_points", "SOURCE_KEY"],
+        ascending=[True, False, False, True],
+    ).drop(columns="sort_key")
+    priority.to_csv(report_dir / "inverter_priority.csv", index=False, float_format="%.3f")
+    return priority, series
+
+
 def make_events(
     test: pd.DataFrame,
     totals: pd.DataFrame,
@@ -330,6 +386,7 @@ def build_operations(
     figure_dir = report_dir / "figures"
     risk_metrics, risk = train_ramp_risk(dataset, train, validation, test, project_dir / "models")
     radar, peer_summary, episodes = calculate_peer_radar(train, test)
+    priority, priority_series = build_priority(radar, peer_summary, episodes, test, report_dir)
     events = make_events(test, totals, alert_threshold, risk, episodes)
     risk_chart = save_risk_chart(risk, risk_metrics, figure_dir)
     peer_chart = save_peer_case_chart(radar, episodes, figure_dir)
@@ -350,6 +407,7 @@ def build_operations(
         "operator_events": int(len(events)),
         "deviation_events": int(sum(event["type"] == "deviation" for event in events)),
         "peer_incidents": int(sum(event["type"] == "peer" for event in events)),
+        "priority_inverters": int((priority["priority"] == "Öncelikli inceleme").sum()),
     }
     (report_dir / "operations_metrics.json").write_text(
         json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -377,6 +435,16 @@ def build_operations(
             }
             for row in peer_summary.itertuples(index=False)
         ],
+        "priority": [
+            {"id": row.SOURCE_KEY, "status": row.priority,
+             "episodes": int(row.episodes), "minutes": int(row.episode_minutes),
+             "longest_minutes": int(row.longest_minutes), "low_points": int(row.low_points),
+             "eligible_points": int(row.eligible_points), "worst_ratio": round(float(row.worst_ratio), 3)
+             if pd.notna(row.worst_ratio) else None,
+             "model_mae": round(float(row.model_mae), 2), "chart_day": row.chart_day}
+            for row in priority.itertuples(index=False)
+        ],
+        "priority_series": priority_series,
         "peer_episodes": [
             {
                 "id": row.inverter,

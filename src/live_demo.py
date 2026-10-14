@@ -71,9 +71,10 @@ def finite_number(value, name: str, *, nonnegative: bool = False) -> float:
 class LiveEngine:
     """Her paketi geldiği anda tahmin eder; hedef ölçüm gelince sonucu açar."""
 
-    def __init__(self, forecast_bundle: dict, risk_bundle: dict):
+    def __init__(self, forecast_bundle: dict, risk_bundle: dict, interval_bundle: dict | None = None):
         self.forecast = forecast_bundle
         self.risk = risk_bundle
+        self.interval = interval_bundle
         self.allowed_ids = set(forecast_bundle["source_keys"])
         self.lock = threading.RLock()
         self.reset()
@@ -143,6 +144,15 @@ class LiveEngine:
             if not np.isfinite(predictions).all():
                 raise ValueError("Model sonlu tahmin üretemedi.")
             predicted_by_id = dict(zip(ids, map(float, predictions)))
+            lower_bound = upper_bound = None
+            if self.interval is not None:
+                from uncertainty import interval_for_point
+
+                lower, upper = interval_for_point(
+                    self.interval, [sum(powers.values())],
+                    [sum(predicted_by_id.values())],
+                )
+                lower_bound, upper_bound = float(lower[0]), float(upper[0])
 
             # Risk modeli yalnızca tam 15 dakika önceki ölçüm varsa çalışır.
             risk_ids = [
@@ -199,6 +209,7 @@ class LiveEngine:
             self.current = {
                 "time": moment.isoformat(), "power": float(sum(powers.values())),
                 "forecast": self.pending["forecast"],
+                "lower": lower_bound, "upper": upper_bound,
                 "target_time": self.pending["target_time"].isoformat(),
                 "inverter_count": len(ids), "irradiation": irradiation,
                 "risk_count": len(risk_flags), "risk_ids": risk_flags,
@@ -298,6 +309,7 @@ def make_handler(engine: LiveEngine, controller: ReplayController):
             reports = {
                 "reports/proje_ozeti.md", "reports/figures/ramp_precision_recall.png",
                 "reports/figures/peer_case.png",
+                "reports/figures/plant_interval_last_day.png",
             }
             name = "live.html" if self.path == "/" else self.path.removeprefix("/")
             if name not in pages and name not in reports:
@@ -368,9 +380,10 @@ def main():
     args = parser.parse_args()
     forecast_path = PROJECT_DIR / "models" / "forecast_bundle.joblib"
     risk_path = PROJECT_DIR / "models" / "risk_bundle.joblib"
-    if not forecast_path.exists() or not risk_path.exists():
+    interval_path = PROJECT_DIR / "models" / "plant_interval_bundle.joblib"
+    if not forecast_path.exists() or not risk_path.exists() or not interval_path.exists():
         raise SystemExit("Önce .\\.venv\\Scripts\\python.exe src\\plant_model.py çalıştırıp modelleri kaydet.")
-    engine = LiveEngine(joblib.load(forecast_path), joblib.load(risk_path))
+    engine = LiveEngine(joblib.load(forecast_path), joblib.load(risk_path), joblib.load(interval_path))
     packets = load_replay_packets()
     controller = ReplayController(packets, args.port)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(engine, controller))

@@ -95,6 +95,8 @@ function render(state) {
   $("current-power").textContent = current ? number(current.power) : "—";
   $("irradiation").textContent = current ? `Işınım: ${current.irradiation.toFixed(3)}` : "Işınım: —";
   $("forecast-power").textContent = current ? number(current.forecast) : "—";
+  $("forecast-range").textContent = current && current.lower !== null
+    ? `Tahmin aralığı: ${number(current.lower)}–${number(current.upper)}` : "Aralık: —";
   $("target-time").textContent = current ? `Hedef: ${hour(current.target_time)}` : "Hedef: —";
   $("actual-power").textContent = revealed ? number(revealed.actual) : "—";
   $("previous-error").textContent = revealed ? `${hour(revealed.time)} · mutlak hata: ${number(revealed.error)}` : "Sonraki mesaj bekleniyor";

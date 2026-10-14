@@ -40,6 +40,10 @@ Sonuçları incelemek için [etkileşimli bir web ekranı](../dashboard/index.ht
 
 [Tahmin simülasyonu](../dashboard/simulation.html), son test gününün ardışık kayıtlarını adım adım gösterir. Önce mevcut güç ve 15 dakika sonrası model tahmini, sonraki adımda gerçek sonuç ve mutlak hata açılır. Bu, kayıtlı test verisinin oynatımıdır; canlı ölçüm bağlantısı veya tarayıcıda yeniden model eğitimi içermez. Negatif model tahminleri, fiziksel güç sınırına uygun olması için sıfıra çekilmiştir.
 
+## Tahmin aralığı ve belirsizlik
+
+Santralin 22 inverter toplamı için tek sayı yanında **alt ve üst güç sınırı** da hesaplanır. Sınır genişliği, son testten önceki doğrulama döneminde gözlenen mutlak toplam güç hatalarının mevcut santral gücüne göre gruplandırılmış %80 diliminden gelir. Test kayıtları genişlik seçiminde kullanılmaz. Ayrılmış son testte gerçek güç 630 zaman noktasının **%73,3'ünde**, güneş ışınımı bulunan 353 noktanın **%81,6'sında** aralıkta kalmıştır. Ortalama genişlik sırasıyla **4.174,88** ve **7.430,70** veri seti güç birimidir. Genel oran hedeflenen %80'in altındadır; aralık garanti olarak yorumlanmaz. [Grafik](figures/plant_interval_last_day.png), [her 15 dakikalık sonuç](plant_prediction_intervals.csv) ve [ölçüler](interval_metrics.json) rapora eklenmiştir.
+
 ## Yerel ölçüm akışı prototipi
 
 Ayrı bir [akış ekranında](../dashboard/live.html), son test günündeki ham üretim ve hava ölçümleri cihaz ağ geçidi mesajı biçiminde **yerel HTTP sunucusuna** sırayla gönderilir. Kayıtlı Python tahmin modeli her yeni mesaj geldiğinde çalışır; önceki tahminin gerçek sonucu yalnızca ilgili sonraki ölçüm geldiğinde hesaplanır. Böylece önceden hesaplanmış sonuçları oynatan statik ekrandan farklı olarak veri alma, anlık çıkarım ve sonuç izleme adımları gösterilir. Ani düşüş modeli yalnızca gündüz ve tam 15 dakika önceki ölçüm mevcutken uyarı üretir. Büyük sapma kaydı gerçek ölçümün ardından oluşur.
@@ -60,6 +64,8 @@ Simülasyondaki “Büyük sapma” uyarısı, 22 inverterin toplam tahmin güc�
 
 **İnverter kıyas radarı**, her cihazın gücünü eğitim dönemindeki kendi %95 güç referansına böler ve aynı anda çalışan filonun medyanıyla karşılaştırır. Filo belirgin üretimdeyken medyanın %70'inin altında dört ardışık 15 dakikalık ölçüm kalan cihazlar kaydedilir. Son testte **14 Haziran 11.00–14.15** arasında iki inverterde **210 dakikalık** ortak ayrışma bulundu. [Olay grafiği](figures/peer_case.png) ve [bölüm tablosu](peer_episodes.csv) bu durumu gösterir. Kurulu kapasite ve arıza etiketleri bilinmediğinden neden çıkarılmaz.
 
+**İnceleme sırası**, aynı filo kıyası olaylarını toplam süreye göre sıralar. Her iki inverter 210 dakika ile öncelikli inceleme grubundadır; daha kısa düşük ölçümler “İzle” grubundadır. [Operasyon ekranında](../dashboard/operations.html) cihaz seçilerek ayrışmanın yaşandığı günün zaman çizgisi ve o cihazdaki model test hatası görülebilir. [Sıralama tablosu](inverter_priority.csv) kararın hangi sayılara dayandığını gösterir. Bu, arıza veya enerji kaybı miktarı teşhisi değildir.
+
 **Operatör olay kaydı**, son testteki **29 büyük toplam güç sapmasını** ve eşzamanlı iki inverterlik **1 filo olayını** zaman sırasıyla saklar. Sapma kayıtlarında gerçekleşen/tahmin edilen toplam güç, en yüksek bireysel hatası olan inverterler ve tahmin anındaki ani düşüş uyarısı sayısı bulunur. [JSON kayıtları](operator_events.json) ve simülasyon sayfası üzerinden incelenebilir. Simülasyonda gerçek ölçüm zamanı gelmeden olay sonucu gösterilmez.
 
 İlk aşamada tek inverter üzerinde yapılan deney [ayrı bir notta](ilk_deney.md) korunmuştur. Farklı veri bölme yöntemleri kullanıldığı için ilk deneyin sayısal sonuçları bu sonuçlarla doğrudan karşılaştırılmamalıdır.
@@ -67,3 +73,5 @@ Simülasyondaki “Büyük sapma” uyarısı, 22 inverterin toplam tahmin güc�
 ## Sınırlamalar
 
 Veri yaklaşık 34 günlük bir dönemi ve yalnızca bir santrali kapsar; farklı mevsim veya santrallerdeki başarı henüz ölçülmemiştir. İki inverterdeki olumsuz sonuç, tek bir modelin her cihaza eşit derecede uygun olmadığını gösterir. Hata değerleri veri setindeki `AC_POWER` ölçeğindedir; birim doğrulanmadan kW olarak yorumlanmamıştır.
+
+Tahmin aralığı genel testte hedeflenen kapsama oranının altında kalmıştır ve gelecekteki ölçümleri kesin biçimde sınırlandıramaz. İnverter sıralaması gerçek arıza etiketleri yerine göreli güç ölçümlerini kullandığı için operatörün inceleme önceliği olarak düşünülmelidir.
