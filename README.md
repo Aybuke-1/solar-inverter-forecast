@@ -28,7 +28,15 @@ Girdi etkisi, **gündüz doğrulama verisinde** her girdi grubunun değerleri ka
 
 Simülasyonda gerçekleşen toplam güç ile tahmin arasındaki fark, **6.055,28** değerini aşınca “Büyük sapma” uyarısı görünür. Eşik, son teste bakılmadan **doğrulama dönemindeki toplam güç mutlak hatalarının %95 sınırından** alındı. Son testteki 630 zaman noktasının 29'unda, oynatılan son günün 4 noktasında eşik aşıldı. Bu bir **inceleme işaretidir**; veri setinde arıza etiketi olmadığı için arıza teşhisi sayılmaz. Toplam güç eşiği, tek inverter MAE değeriyle aynı ölçekte değildir.
 
-`src/plant_model.py` çalıştırıldığında `dashboard/data.js` dosyası da yeniden üretilir. Bu dosyada ham CSV kayıtları yerine özet sonuçlar ve son test gününün toplam güç serisi bulunur. GitHub'a yüklendikten sonra bu statik ekran [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) ile de yayımlanabilir; yayımlama şu anda yapılmamıştır.
+## Operasyon masası: risk, filo kıyası, olay kaydı
+
+[Operasyon masasını aç](dashboard/operations.html) bağlantısı üç özelliği birleştirir:
+
+1. **Ani düşüş riski:** Mevcut güç, ışınım ve son 15 dakikadaki değişimleri kullanan ayrı bir sınıflandırma modeli, bir inverterin sonraki 15 dakikada sert güç düşüşü yaşayıp yaşamayacağını işaretler. Sert düşüş sınırı yalnızca öğrenme verisindeki pozitif düşüşlerin üst %10'undan (**278,48**) gelir. Uyarı puanı eşiği doğrulama bölümünde F1 değerine göre seçilir. Gündüz son testte **7.744** kaydın **385** tanesinde sert düşüş vardı. Modelin **623** uyarısının **186** tanesi isabetliydi: **%29,9 isabet (precision)** ve gerçek düşüşlerin **%48,3'ünü yakalama (recall)**. Rastgele bir kaydın düşüş olma oranı **%5,0** idi. Risk puanı kesin olasılık değildir. [Değerlendirme grafiği](reports/figures/ramp_precision_recall.png) ve [sayısal rapor](reports/operations_metrics.json) bu sınırı görünür kılar.
+2. **İnverter kıyas radarı:** Her inverterin gücü, yalnızca öğrenme dönemindeki kendi referans gücüne bölünür; aynı andaki filo medyanıyla karşılaştırılır. Güçlü üretim anlarında medyanın %70'inin altında en az **4 ardışık ölçüm** kalan cihazlar inceleme kaydına girer. Son testte **14 Haziran 11.00–14.15** aralığında iki inverter için **210 dakikalık** ortak ayrışma bulundu. [Olay grafiği](reports/figures/peer_case.png), [inverter özeti](reports/peer_summary.csv) ve [bölüm tablosu](reports/peer_episodes.csv) ayrıntıları gösterir. Bu, neden veya arıza teşhisi değildir.
+3. **Operatör olay kaydı:** Son testteki **29 büyük tahmin sapması** ile aynı anda gerçekleşen iki inverterlik **1 filo kıyası olayı** bir araya getirilir. Her kayıtta zaman, ölçülen/tahmin edilen güç veya ilgili inverterler bulunur. [Olayları JSON olarak gör](reports/operator_events.json). Simülasyonda risk uyarısı tahmin anında, gerçekleşen olay ise gerçek ölçüm açıldıktan sonra görünür.
+
+`src/plant_model.py` çalıştırıldığında `dashboard/data.js` ve `dashboard/operations_data.js` dosyaları da yeniden üretilir. Bu dosyalarda ham CSV kayıtları yerine özet sonuçlar, risk işaretleri ve olay kayıtları bulunur. GitHub'a yüklendikten sonra bu statik ekran [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) ile de yayımlanabilir; yayımlama şu anda yapılmamıştır.
 
 ## Kullanılan yöntem
 
@@ -60,16 +68,24 @@ Ardından tüm santral deneyini çalıştır:
 .\.venv\Scripts\python.exe src\plant_model.py
 ```
 
-Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.csv`, `reports/plant_metrics.json`, `reports/figures/` altındaki grafikleri ve `dashboard/data.js` dosyasını oluşturur. Önceki tek inverter deneyini görmek istersen `src/train_model.py`, ilk veri kontrolü için `src/inspect_data.py` çalıştırabilirsin.
+Komut doğrulama ve test sonuçlarını terminale yazar; tahmin, risk ve filo kıyası raporlarını, `reports/figures/` altındaki grafikleri ve iki dashboard veri dosyasını oluşturur. Önceki tek inverter deneyini görmek istersen `src/train_model.py`, ilk veri kontrolü için `src/inspect_data.py` çalıştırabilirsin.
+
+Zaman aralığı ve filo olayı kurallarını kontrol etmek için:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
 ## Dosya yapısı
 
 | Yol | İçerik |
 | --- | --- |
 | `src/plant_model.py` | 22 inverter için model karşılaştırma, test ve hata analizi |
+| `src/operations_model.py` | Ani düşüş riski, inverter kıyası ve operatör olay kaydı |
 | `src/train_model.py` | Tek inverterli ilk geliştirme deneyi |
 | `src/inspect_data.py` | İlk veri incelemesi ve keşif deneyi |
-| `dashboard/` | Etkileşimli sonuç, model analizi ve tarihsel tahmin simülasyonu |
+| `tests/test_operations.py` | Geçmiş ölçüm ve kesintisiz filo olayı kontrolleri |
+| `dashboard/` | Sonuç, model analizi, simülasyon ve operasyon masası |
 | `index.html` | Statik site ana sayfası; dashboard'a yönlendirir |
 | `data/raw/README.md` | Ham veriyi indirme yönergesi |
 | `reports/proje_ozeti.md` | Ders için kısa yöntem ve sonuç anlatımı |
@@ -77,6 +93,10 @@ Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.
 | `reports/hourly_errors.csv` | Hedef saate göre test hataları |
 | `reports/inverter_hourly_errors.csv` | İnverter ve hedef saate göre test hataları |
 | `reports/feature_importance.csv` | Gündüz doğrulama verisinde girdi grubu etkisi |
+| `reports/operations_metrics.json` | Ani düşüş modeli ve filo kıyası sonuçları |
+| `reports/ramp_risk_predictions.csv` | Son testteki gündüz risk tahminleri ve gerçekleşen düşüşler |
+| `reports/peer_summary.csv`, `reports/peer_episodes.csv` | İnverter kıyası ve uzun düşük üretim bölümleri |
+| `reports/operator_events.json` | Tarihsel operatör olay kayıtları |
 | `reports/plant_metrics.json` | Tekrar üretilebilir deney sonuçları |
 | `reports/figures/` | Oluşturulan sonuç grafikleri |
 
@@ -85,5 +105,7 @@ Ham CSV dosyaları ve yerel Python ortamı `.gitignore` ile GitHub deposunun dı
 ## Kapsam ve sınırlamalar
 
 Veri 15 Mayıs–17 Haziran 2020 döneminden ve yalnızca Plant 1 santralinden alınmıştır. Farklı mevsimler veya başka santraller için aynı başarı garanti edilemez. İki inverterde model basit tahminden daha kötü sonuç vermiştir; bu durum ayrı inceleme gerektirir. Tahmin edilen değişken enerji miktarı değil, `AC_POWER` güç ölçümüdür. Veri setindeki birim doğrulanmadığı için hata değerleri kW olarak adlandırılmaz.
+
+Ani düşüş modeli hatalı uyarılar verebilir ve gerçek düşüşlerin bir bölümünü kaçırır. Filo kıyası, çalışma koşulları aynı santral içinde benzer varsayımıyla yapılır; inverterlerin kurulu kapasiteleri ve arıza etiketleri bilinmez. Olay kayıtları gözlenen veri örüntülerini düzenler, kök neden belirlemez.
 
 Veri kaynağı: [Solar Power Generation Data](https://www.kaggle.com/datasets/anikannal/solar-power-generation-data).

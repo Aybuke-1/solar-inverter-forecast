@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1728" />
+    <title>Solar Forecast | Operasyon Masası</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="operations_data.js"></script>
+    <script defer src="operations.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">☀</span> Solar Forecast</div>
+        <nav class="topbar-nav" aria-label="Sayfalar">
+          <a class="nav-link" href="index.html">← Sonuç ekranı</a>
+          <a class="nav-link" href="analysis.html">Model analizi</a>
+          <a class="nav-link" href="simulation.html">Simülasyon →</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="analysis-hero" aria-labelledby="operations-title">
+        <p class="eyebrow">22 İNVERTER · TARİHSEL OPERASYON ANALİZİ</p>
+        <h1 id="operations-title">Tahminden <span>operasyon kararına.</span></h1>
+        <p class="hero-copy">Ani güç düşüşü riskini önceden işaretle, aynı koşullardaki inverterleri kıyasla ve gerçekleşen olayları tek yerde incele.</p>
+        <div class="replay-notice"><strong>Geçmiş kayıtların analizi:</strong> Bu ekran 2020 test verisini kullanır. Uyarılar operatör incelemesi içindir; doğrulanmış arıza teşhisi değildir.</div>
+      </section>
+
+      <section class="analysis-summary" aria-label="Operasyon özeti">
+        <article class="metric"><span>Risk uyarısı isabeti</span><strong id="risk-precision">—</strong><small>uyarıların gerçekten düşüş olduğu pay</small></article>
+        <article class="metric"><span>Yakalanan düşüş</span><strong id="risk-recall">—</strong><small>gerçek sert düşüşlerin payı</small></article>
+        <article class="metric"><span>Filo kıyası olayı</span><strong id="peer-incidents">—</strong><small>en az 1 saatlik grup ayrışması</small></article>
+        <article class="metric"><span>Olay kaydı</span><strong id="event-count">—</strong><small>son test döneminde</small></article>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="risk-title">
+        <p class="eyebrow">15 DAKİKA ÖNCEDEN</p>
+        <h2 id="risk-title">Ani üretim düşüşü riski</h2>
+        <p class="muted">Ayrı bir model; mevcut güç, ışınım ve son 15 dakikadaki değişime bakarak bir inverterde sert düşüş riski olup olmadığını işaretler.</p>
+        <div class="operation-facts">
+          <div><span>Sert düşüş tanımı</span><strong id="drop-limit">—</strong><small>eğitim verisindeki güç ölçeği</small></div>
+          <div><span>Son testte uyarı</span><strong id="risk-alerts">—</strong><small id="risk-correct">—</small></div>
+          <div><span>İsabet artışı</span><strong id="risk-lift">—</strong><small>rastgele seçim düzeyine göre</small></div>
+        </div>
+        <p id="risk-reading" class="analysis-insight"></p>
+        <img class="report-figure" src="../reports/figures/ramp_precision_recall.png" alt="Ani düşüş riski modelinin isabet ve yakalama oranlarını gösteren grafik" />
+        <div class="analysis-note"><strong>Önemli sınır:</strong> Risk puanı kesin olasılık değildir. Uyarı eşiği doğrulama bölümünde seçildi; yukarıdaki isabet ve yakalama sayıları ayrı tutulan son testten gelir.</div>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="peer-title">
+        <p class="eyebrow">FİLO RADARI</p>
+        <h2 id="peer-title">Hangi inverterler gruptan ayrıldı?</h2>
+        <p class="muted">Her inverter önce kendi eğitim dönemi normal gücüne göre ölçeklenir. Santral güçlü üretirken aynı andaki filo medyanının belirgin altında en az dört ardışık ölçüm kalırsa inceleme kaydı açılır.</p>
+        <div id="featured-peer" class="featured-peer"></div>
+        <img class="report-figure" src="../reports/figures/peer_case.png" alt="14 Haziran 2020 tarihinde iki inverterin üretiminin filo medyanına göre düşmesini gösteren grafik" />
+        <h3>22 inverterin özeti</h3>
+        <div id="peer-list" class="peer-list"></div>
+        <div class="analysis-note"><strong>Yorum:</strong> Düşük göreli güç; planlı duruş, gölgelenme, iletişim veya başka bir nedenle oluşabilir. Bu veri nedenini doğrulamaz.</div>
+      </section>
+
+      <section class="panel analysis-panel" aria-labelledby="events-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">OPERATÖR OLAY KAYDI</p>
+            <h2 id="events-title">Gerçekleşen olaylar</h2>
+            <p class="muted">Büyük tahmin sapmaları ve uzun filo ayrışmaları zaman, ölçüm ve ilgili inverterlerle kaydedilir.</p>
+          </div>
+          <label class="select-label" for="event-filter">Olay türü
+            <select id="event-filter">
+              <option value="all">Tümü</option>
+              <option value="peer">Filo kıyası</option>
+              <option value="deviation">Büyük tahmin sapması</option>
+            </select>
+          </label>
+        </div>
+        <div id="event-list" class="event-list"></div>
+        <button id="show-more-events" class="secondary-button" type="button">Daha fazla olay göster</button>
+      </section>
+
+      <footer>Solar Forecast · Kaggle Solar Power Generation Data · Tarihsel operasyon prototipi</footer>
+    </main>
+  </body>
+</html>

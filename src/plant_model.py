@@ -506,6 +506,11 @@ def main() -> None:
     print("Tüm sayısal sonuçlar:", metrics_path)
     print("Web ekranı verisi:", dashboard_data_path)
 
+    # Aynı zaman bölümlerini kullanarak operasyon analizlerini de üret.
+    from operations_model import build_operations
+
+    build_operations(dataset, train, validation, test, plant_totals, alert_threshold, PROJECT_DIR)
+
 
 if __name__ == "__main__":
     main()

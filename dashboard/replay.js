@@ -3,6 +3,7 @@
 // Her satır: o andaki toplam güç (baseline), 15 dakika sonrası tahmin (model)
 // ve bir sonraki adım gelene kadar gizlenen gerçekleşen güç (actual).
 const replayData = window.dashboardData;
+const operationReplayData = window.operationsData;
 const series = replayData.plant_series.filter((row) => row.time >= "07:00");
 const numberFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
 const decimalFormat = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
@@ -31,6 +32,9 @@ const elements = {
   alertBadge: document.getElementById("alert-badge"),
   alertCount: document.getElementById("alert-count"),
   alertExplanation: document.getElementById("alert-explanation"),
+  rampRiskBadge: document.getElementById("ramp-risk-badge"),
+  rampRiskExplanation: document.getElementById("ramp-risk-explanation"),
+  replayEvents: document.getElementById("replay-events"),
 };
 
 function formatPower(value) {
@@ -96,6 +100,32 @@ function drawChart() {
   }
 }
 
+function renderReplayEvents(previous) {
+  const container = elements.replayEvents;
+  container.replaceChildren();
+  const cutoff = previous ? `${replayData.plant_day}T${previous.time}:00` : null;
+  const events = (operationReplayData?.events || []).filter((event) =>
+    event.type === "deviation" && event.time.startsWith(replayData.plant_day) && cutoff && event.time <= cutoff
+  );
+  if (!events.length) {
+    const empty = document.createElement("p");
+    empty.className = "muted";
+    empty.textContent = "Henüz açılmış büyük sapma olayı yok.";
+    container.append(empty);
+    return;
+  }
+  for (const event of events) {
+    const card = document.createElement("article");
+    card.className = "replay-event";
+    const title = document.createElement("strong");
+    title.textContent = `${event.time.slice(11, 16)} · ${formatPower(Math.abs(event.difference))} güç farkı`;
+    const detail = document.createElement("span");
+    detail.textContent = `Gerçek ${formatPower(event.actual)}, tahmin ${formatPower(event.forecast)}. En büyük bireysel farklar: ${event.top_inverters.map((item) => item.id).join(", ")}.`;
+    card.append(title, detail);
+    container.append(card);
+  }
+}
+
 function render() {
   const started = step >= 0;
   const complete = step >= series.length;
@@ -122,6 +152,15 @@ function render() {
   elements.alertExplanation.textContent = previous
     ? `${previous.time} ölçümünde tahmin farkı ${decimalFormat.format(previousDifference)}. ${direction} Doğrulama verisinden belirlenen uyarı eşiği ${decimalFormat.format(alertThreshold)}. ${largeDeviation ? "Sapma araştırılmalı; bu tek başına arıza teşhisi değildir." : "Fark uyarı eşiğinin altında."}`
     : `Gerçek ölçüm açıldığında tahminle farkı kontrol edilecek. Uyarı eşiği: ${decimalFormat.format(alertThreshold)}.`;
+  const risk = current ? operationReplayData?.risk_by_time.find((row) => row.time === current.time) : null;
+  elements.rampRiskBadge.textContent = !current ? "Tahmin bekleniyor" : !risk ? "Risk hesabı yok" : risk.flagged ? `${risk.flagged}/${risk.examined} inverterde risk` : "Yüksek risk işareti yok";
+  elements.rampRiskBadge.className = `alert-badge ${!current || !risk ? "idle" : risk.flagged ? "warning" : "normal"}`;
+  elements.rampRiskExplanation.textContent = !current
+    ? "Simülasyon başladığında gündüz inverterlerinin risk uyarıları gösterilecek."
+    : !risk
+      ? "Risk modeli yalnızca güneş ışınımı bulunan ve önceki ölçümü mevcut olan zamanlarda çalışır."
+      : `${current.time} için ${risk.examined} inverter incelendi; ${risk.flagged} tanesi sert düşüş açısından işaretlendi. Bu sonuç gerçek gelecek ölçümü açılmadan hesaplanmıştır.`;
+  renderReplayEvents(previous);
   elements.progressText.textContent = complete ? `${series.length} tahminin sonucu görüldü · tamamlandı` : started ? `${step + 1} / ${series.length} tahmin gösterildi` : "Başlamaya hazır";
   elements.progressFill.style.width = `${started ? (complete ? 100 : ((step + 1) / series.length) * 100) : 0}%`;
   elements.status.textContent = complete ? "Son tahminin gerçek sonucu da açıldı. Baştan izlemek için Başa dön'e bas." : current ? `${dateTime(15, current.time)} ölçümüyle ${dateTime(0, current.time)} için tahmin yapıldı. Gerçek sonuç sonraki adımda açılacak.` : "Başlat'a basarak ilk tahmini gör.";

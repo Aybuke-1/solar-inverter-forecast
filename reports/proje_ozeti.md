@@ -48,6 +48,14 @@ Model girdilerinin etkisi için seçilen model, yalnızca öğrenme verisinde e�
 
 Simülasyondaki “Büyük sapma” uyarısı, 22 inverterin toplam tahmin gücü ile gerçekleşen toplam güç arasındaki mutlak farka bakar. Uyarı eşiği, son test kullanılmadan, doğrulama dönemindeki toplam güç hatalarının **%95 sınırı olan 6.055,28** değeridir. Son testteki **630 zaman noktasının 29'unda**, son test gününün **4 noktasında** eşik aşılmıştır. Bu, operatörün inceleme yapması için bir işarettir; veri setinde arıza etiketi olmadığı için arıza teşhisi değildir. Toplam güç farkı ile tek inverter MAE değeri farklı ölçeklerdedir.
 
+## Operasyon odaklı ek çalışma
+
+[Operasyon masası](../dashboard/operations.html) üç ayrı çıktı sunar. **Ani düşüş modeli**, yalnızca gündüz ve geçmiş 15 dakika ölçümü mevcutken, her inverterin sonraki 15 dakikada büyük güç düşüşü yaşama riskini işaretler. Düşüş eşiği öğrenme verisindeki pozitif düşüşlerin %90 dilimi olan **278,48**'dir. Risk puanı için uyarı sınırı doğrulamada F1'e göre seçilmiştir. Son testte 7.744 gündüz örneğinin 385'inde gerçek sert düşüş vardı; 623 uyarının 186'sı isabetliydi (**precision %29,9**). Gerçek düşüşlerin **%48,3'ü** yakalandı (**recall**). Düşüşün son testteki taban oranı **%5,0** idi. [Precision–recall grafiği](figures/ramp_precision_recall.png) hatalı ve kaçırılan uyarıları değerlendirmeye yardım eder. Risk puanı kalibre edilmiş bir olasılık olarak sunulmaz.
+
+**İnverter kıyas radarı**, her cihazın gücünü eğitim dönemindeki kendi %95 güç referansına böler ve aynı anda çalışan filonun medyanıyla karşılaştırır. Filo belirgin üretimdeyken medyanın %70'inin altında dört ardışık 15 dakikalık ölçüm kalan cihazlar kaydedilir. Son testte **14 Haziran 11.00–14.15** arasında iki inverterde **210 dakikalık** ortak ayrışma bulundu. [Olay grafiği](figures/peer_case.png) ve [bölüm tablosu](peer_episodes.csv) bu durumu gösterir. Kurulu kapasite ve arıza etiketleri bilinmediğinden neden çıkarılmaz.
+
+**Operatör olay kaydı**, son testteki **29 büyük toplam güç sapmasını** ve eşzamanlı iki inverterlik **1 filo olayını** zaman sırasıyla saklar. Sapma kayıtlarında gerçekleşen/tahmin edilen toplam güç, en yüksek bireysel hatası olan inverterler ve tahmin anındaki ani düşüş uyarısı sayısı bulunur. [JSON kayıtları](operator_events.json) ve simülasyon sayfası üzerinden incelenebilir. Simülasyonda gerçek ölçüm zamanı gelmeden olay sonucu gösterilmez.
+
 İlk aşamada tek inverter üzerinde yapılan deney [ayrı bir notta](ilk_deney.md) korunmuştur. Farklı veri bölme yöntemleri kullanıldığı için ilk deneyin sayısal sonuçları bu sonuçlarla doğrudan karşılaştırılmamalıdır.
 
 ## Sınırlamalar
