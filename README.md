@@ -16,6 +16,12 @@ Grafikte sağdaki yeşil çubuklar modelin daha iyi olduğu inverterleri, soldak
 
 ![Son test gününde toplam inverter AC gücü](reports/figures/plant_power_last_day.png)
 
+## Etkileşimli sonuç ekranı
+
+[Dashboard'u aç](dashboard/index.html) bağlantısıyla sonuçları tarayıcıda inceleyebilirsin. Ekranda toplam güç grafiğinin model/basit tahmin çizgileri açılıp kapatılabilir; bir inverter seçildiğinde onun hata değerleri gösterilir. **Canlı santral verisi değildir:** yalnızca son test döneminin kayıtlı sonuçlarını gösterir. Ek bir web paketi veya sunucu gerekmez.
+
+`src/plant_model.py` çalıştırıldığında `dashboard/data.js` dosyası da yeniden üretilir. Bu dosyada ham CSV kayıtları yerine özet sonuçlar ve son test gününün toplam güç serisi bulunur. GitHub'a yüklendikten sonra bu statik ekran [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) ile de yayımlanabilir; yayımlama şu anda yapılmamıştır.
+
 ## Kullanılan yöntem
 
 1. Plant 1 içindeki 22 inverterin üretim kayıtları, aynı saatteki hava sensörü kayıtlarıyla eşleştirilir.
@@ -46,7 +52,7 @@ Ardından tüm santral deneyini çalıştır:
 .\.venv\Scripts\python.exe src\plant_model.py
 ```
 
-Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.csv`, `reports/plant_metrics.json` ve `reports/figures/` altındaki inverter/toplam güç grafiklerini oluşturur. Önceki tek inverter deneyini görmek istersen `src/train_model.py`, ilk veri kontrolü için `src/inspect_data.py` çalıştırabilirsin.
+Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.csv`, `reports/plant_metrics.json`, `reports/figures/` altındaki grafikleri ve `dashboard/data.js` dosyasını oluşturur. Önceki tek inverter deneyini görmek istersen `src/train_model.py`, ilk veri kontrolü için `src/inspect_data.py` çalıştırabilirsin.
 
 ## Dosya yapısı
 
@@ -55,6 +61,8 @@ Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.
 | `src/plant_model.py` | 22 inverter için model karşılaştırma, test ve hata analizi |
 | `src/train_model.py` | Tek inverterli ilk geliştirme deneyi |
 | `src/inspect_data.py` | İlk veri incelemesi ve keşif deneyi |
+| `dashboard/` | Etkileşimli HTML/CSS/JavaScript sonuç ekranı |
+| `index.html` | Statik site ana sayfası; dashboard'a yönlendirir |
 | `data/raw/README.md` | Ham veriyi indirme yönergesi |
 | `reports/proje_ozeti.md` | Ders için kısa yöntem ve sonuç anlatımı |
 | `reports/inverter_errors.csv` | İnverter başına test hataları |

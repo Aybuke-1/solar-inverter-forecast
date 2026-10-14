@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1728" />
+    <title>Solar Forecast | İnverter Güç Analizi</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="data.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">☀</span> Solar Forecast</div>
+        <span class="topbar-tag">Plant 1 · Veri madenciliği projesi</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">GÜNEŞ ENERJİSİ · KISA VADELİ TAHMİN</p>
+          <h1 id="page-title">İnverter gücü, <span>15 dakika sonra</span></h1>
+          <p class="hero-copy">
+            22 inverterin geçmiş ölçümlerinden yapılan tahminleri keşfet. Modeli basit
+            tahminle karşılaştır, cihaz bazındaki farkları ve toplam güç eğrisini incele.
+          </p>
+        </div>
+        <div class="hero-orbit" aria-hidden="true"><span>15<span>dk</span></span></div>
+      </section>
+
+      <section class="metrics" aria-label="Özet sonuçlar">
+        <article class="metric"><span>İnverter sayısı</span><strong id="metric-inverters">—</strong><small>Plant 1</small></article>
+        <article class="metric"><span>İncelenen örnek</span><strong id="metric-examples">—</strong><small>15 dakika aralıklı</small></article>
+        <article class="metric"><span>Model test hatası</span><strong id="metric-mae">—</strong><small>MAE · düşük daha iyi</small></article>
+        <article class="metric"><span>İyileşen inverter</span><strong id="metric-improved">—</strong><small>basit tahmine göre</small></article>
+      </section>
+
+      <section class="panel chart-panel" aria-labelledby="plant-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">SANTRAL GÖRÜNÜMÜ</p>
+            <h2 id="plant-title">Toplam inverter AC gücü</h2>
+            <p id="chart-subtitle" class="muted"></p>
+          </div>
+          <div class="legend" aria-label="Grafikteki çizgiler">
+            <label><input type="checkbox" data-series="actual" checked disabled /><i class="dot actual"></i>Gerçek</label>
+            <label><input type="checkbox" data-series="model" checked /><i class="dot model"></i>Model</label>
+            <label><input type="checkbox" data-series="baseline" checked /><i class="dot baseline"></i>Basit tahmin</label>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="power-chart" viewBox="0 0 960 360" role="img" aria-label="Son test gününde gerçek ve tahmini toplam inverter gücü"></svg>
+          <div id="chart-tooltip" class="chart-tooltip" hidden></div>
+        </div>
+        <p class="chart-note">Çizgilerin üzerine gelerek saatlik değerleri gör. Bu, geçmiş test verisidir; canlı santral izlemesi değildir.</p>
+      </section>
+
+      <section class="detail-grid">
+        <article class="panel inverter-panel" aria-labelledby="inverter-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">CİHAZ BAZINDA</p>
+              <h2 id="inverter-title">İnverter karşılaştırması</h2>
+            </div>
+            <label class="select-label" for="inverter-select">İnverter seç
+              <select id="inverter-select"></select>
+            </label>
+          </div>
+          <div class="selected-card">
+            <span id="selected-status" class="status">—</span>
+            <strong id="selected-id">—</strong>
+            <div class="selected-numbers">
+              <div><span>Basit tahmin MAE</span><strong id="selected-baseline">—</strong></div>
+              <div><span>Model MAE</span><strong id="selected-model">—</strong></div>
+              <div><span>Hata farkı</span><strong id="selected-delta">—</strong></div>
+            </div>
+          </div>
+          <div class="bar-heading"><span>22 inverterin hata farkı</span><small>Yeşil: model iyi · Kırmızı: basit tahmin iyi</small></div>
+          <div id="inverter-bars" class="bars"></div>
+        </article>
+
+        <aside class="panel method-panel" aria-labelledby="method-title">
+          <p class="eyebrow">NASIL HESAPLANDI?</p>
+          <h2 id="method-title">Sonucu doğru okumak</h2>
+          <div class="method-step"><span>01</span><p><strong>Hedef:</strong> Bir inverterin tam 15 dakika sonraki AC güç ölçümü.</p></div>
+          <div class="method-step"><span>02</span><p><strong>Karşılaştırma:</strong> “Güç aynı kalır” diyen basit tahmin ve seçilen makine öğrenmesi modeli.</p></div>
+          <div class="method-step"><span>03</span><p><strong>Test:</strong> Model seçildikten sonra saklanan son zaman dilimi. Daha düşük MAE, daha düşük ortalama hata demektir.</p></div>
+          <div class="callout"><strong>Önemli sınır</strong><p>Model 20 inverterde daha iyi, 2 inverterde daha kötü. Veri yalnızca 34 gün ve tek santral içerir.</p></div>
+          <a class="text-link" href="../reports/proje_ozeti.md">Yöntem ve sonuç özetini oku <span aria-hidden="true">↗</span></a>
+        </aside>
+      </section>
+
+      <footer>Solar Forecast · Kaggle Solar Power Generation Data · Akademik proje prototipi</footer>
+    </main>
+  </body>
+</html>

@@ -16,6 +16,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_DIR / "data" / "raw"
 REPORT_DIR = PROJECT_DIR / "reports"
 FIGURE_DIR = REPORT_DIR / "figures"
+DASHBOARD_DIR = PROJECT_DIR / "dashboard"
 TARGET = "NEXT_AC_POWER"
 INPUTS = [
     "AC_POWER",
@@ -154,6 +155,42 @@ def save_plant_chart(totals: pd.DataFrame) -> Path:
     return path
 
 
+def save_dashboard_data(metrics: dict, errors: pd.DataFrame, totals: pd.DataFrame) -> Path:
+    """Web ekranına yalnızca özet sonuçları ve son günün toplam güç serisini ver."""
+    last_day = totals["TARGET_TIME"].dt.date.max()
+    last_day_totals = totals[totals["TARGET_TIME"].dt.date == last_day]
+    data = {
+        "metrics": metrics,
+        "inverters": [
+            {
+                "id": row.inverter,
+                "examples": int(row.test_examples),
+                "baseline_mae": round(float(row.baseline_mae), 2),
+                "model_mae": round(float(row.model_mae), 2),
+                "improvement": round(float(row.mae_improvement), 2),
+            }
+            for row in errors.itertuples(index=False)
+        ],
+        "plant_day": str(last_day),
+        "plant_series": [
+            {
+                "time": row.TARGET_TIME.strftime("%H:%M"),
+                "actual": round(float(row.NEXT_AC_POWER), 2),
+                "model": round(float(row.MODEL_PREDICTION), 2),
+                "baseline": round(float(row.BASELINE_PREDICTION), 2),
+            }
+            for row in last_day_totals.itertuples(index=False)
+        ],
+    }
+    DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
+    path = DASHBOARD_DIR / "data.js"
+    path.write_text(
+        "window.dashboardData = " + json.dumps(data, ensure_ascii=False) + ";\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 def main() -> None:
     dataset = load_dataset()
     train, validation, test = time_split(dataset)
@@ -248,6 +285,7 @@ def main() -> None:
     }
     metrics_path = REPORT_DIR / "plant_metrics.json"
     metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
+    dashboard_data_path = save_dashboard_data(metrics, inverter_errors, plant_totals)
 
     print("İnverter sayısı:", metrics["inverters"])
     print("Örnek sayısı:", metrics["examples"])
@@ -271,6 +309,7 @@ def main() -> None:
     print("İnverter grafiği:", chart_path)
     print("Toplam güç grafiği:", plant_chart_path)
     print("Tüm sayısal sonuçlar:", metrics_path)
+    print("Web ekranı verisi:", dashboard_data_path)
 
 
 if __name__ == "__main__":

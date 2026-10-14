@@ -36,6 +36,8 @@ Model genel olarak basit tahminden daha düşük hata vermiştir. İnverter baz�
 
 Her saatteki 22 inverter tahmini toplanarak **toplam inverter AC gücü** de değerlendirildi. Son testteki 630 zaman noktasında toplam güç MAE değeri basit tahminde **1.153,82**, modelde **1.098,33** oldu. [Son test gününün toplam güç grafiği](figures/plant_power_last_day.png) bu karşılaştırmayı gösterir. Toplam güç hataları tek inverter hatalarından farklı ölçektedir.
 
+Sonuçları incelemek için [etkileşimli bir web ekranı](../dashboard/index.html) hazırlanmıştır. Bu ekran geçmiş test sonuçlarını gösterir; canlı üretim takibi yapmaz.
+
 İlk aşamada tek inverter üzerinde yapılan deney [ayrı bir notta](ilk_deney.md) korunmuştur. Farklı veri bölme yöntemleri kullanıldığı için ilk deneyin sayısal sonuçları bu sonuçlarla doğrudan karşılaştırılmamalıdır.
 
 ## Sınırlamalar
