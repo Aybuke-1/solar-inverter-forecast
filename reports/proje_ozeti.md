@@ -20,23 +20,25 @@ Veri, **tüm inverterlerde aynı zaman sınırlarıyla**, yaklaşık %60 öğren
 | --- | ---: |
 | Basit tahmin | 66,45 |
 | Random Forest | 60,49 |
-| Gradient Boosting | **59,65** |
+| Gradient Boosting | **59,61** |
 
 En düşük doğrulama hatasını Gradient Boosting verdiği için bu model seçilip öğrenme ve doğrulama verileriyle yeniden eğitilmiştir.
 
 | Son test grubu | Basit tahmin MAE | Seçilen model MAE |
 | --- | ---: | ---: |
-| Tüm saatler, 13.860 örnek | 54,56 | **51,95** |
-| Güneş ışınımı bulunan saatler, 7.766 örnek | 97,38 | **92,34** |
-| Büyük güç değişimi olan kayıtlar, 1.174 örnek | 293,90 | **263,70** |
+| Tüm saatler, 13.860 örnek | 54,56 | **51,92** |
+| Güneş ışınımı bulunan saatler, 7.766 örnek | 97,38 | **92,30** |
+| Büyük güç değişimi olan kayıtlar, 1.174 örnek | 293,90 | **263,54** |
 
 Model genel olarak basit tahminden daha düşük hata vermiştir. İnverter bazında bakıldığında **22 inverterin 20’sinde** hata azalmış, **2’sinde** artmıştır. [İnverter karşılaştırma grafiği](figures/inverter_improvement.png) ve [ayrıntılı CSV tablosu](inverter_errors.csv), bu farkları gösterir. Gece güç çoğunlukla sıfır olduğu için gündüz saatleri ayrıca değerlendirilmiştir.
 
 “Büyük güç değişimi” eşiği, öğrenme verisindeki 15 dakikalık mutlak değişimlerin üst %10 sınırı olan **189,31** olarak belirlenmiştir. Son testte bu eşiği aşan 1.174 kayıt ayrı incelenmiştir. Bu kayıtların gelecekteki değişimi yalnızca sonuçları değerlendirmek için kullanılır; modele önceden verilmez. Model burada da basit tahminden iyi olsa da hata yüksek kalmıştır.
 
-Her saatteki 22 inverter tahmini toplanarak **toplam inverter AC gücü** de değerlendirildi. Son testteki 630 zaman noktasında toplam güç MAE değeri basit tahminde **1.153,82**, modelde **1.098,33** oldu. [Son test gününün toplam güç grafiği](figures/plant_power_last_day.png) bu karşılaştırmayı gösterir. Toplam güç hataları tek inverter hatalarından farklı ölçektedir.
+Her saatteki 22 inverter tahmini toplanarak **toplam inverter AC gücü** de değerlendirildi. Son testteki 630 zaman noktasında toplam güç MAE değeri basit tahminde **1.153,82**, modelde **1.097,90** oldu. [Son test gününün toplam güç grafiği](figures/plant_power_last_day.png) bu karşılaştırmayı gösterir. Toplam güç hataları tek inverter hatalarından farklı ölçektedir.
 
 Sonuçları incelemek için [etkileşimli bir web ekranı](../dashboard/index.html) hazırlanmıştır. Bu ekran geçmiş test sonuçlarını gösterir; canlı üretim takibi yapmaz.
+
+[Tahmin simülasyonu](../dashboard/simulation.html), son test gününün ardışık kayıtlarını adım adım gösterir. Önce mevcut güç ve 15 dakika sonrası model tahmini, sonraki adımda gerçek sonuç ve mutlak hata açılır. Bu, kayıtlı test verisinin oynatımıdır; canlı ölçüm bağlantısı veya tarayıcıda yeniden model eğitimi içermez. Negatif model tahminleri, fiziksel güç sınırına uygun olması için sıfıra çekilmiştir.
 
 İlk aşamada tek inverter üzerinde yapılan deney [ayrı bir notta](ilk_deney.md) korunmuştur. Farklı veri bölme yöntemleri kullanıldığı için ilk deneyin sayısal sonuçları bu sonuçlarla doğrudan karşılaştırılmamalıdır.
 

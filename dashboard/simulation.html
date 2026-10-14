@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1728" />
+    <title>Solar Forecast | Tahmin Simülasyonu</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="data.js"></script>
+    <script defer src="replay.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">☀</span> Solar Forecast</div>
+        <nav class="topbar-nav" aria-label="Sayfalar">
+          <a class="nav-link" href="index.html">← Sonuç ekranı</a>
+          <span class="topbar-tag">Plant 1 · Simülasyon</span>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="replay-hero" aria-labelledby="replay-title">
+        <p class="eyebrow">KAYITLI TEST GÜNÜ · HIZLANDIRILMIŞ OYNATIM</p>
+        <h1 id="replay-title">Tahmini gör. <span>15 dakika sonra</span> sonucu öğren.</h1>
+        <p class="hero-copy">22 inverterin toplam AC gücünü adım adım izle. Her adımda o anki ölçüm ve bir sonraki 15 dakikanın tahmini gösterilir. Gerçek sonuç bir sonraki adımda açılır.</p>
+        <div class="replay-notice"><strong>Bu bir tarihsel veri simülasyonudur.</strong> 17 Haziran 2020 test kayıtları oynatılır; gerçek bir santrale canlı bağlantı kurulmaz. Tahminler Python modelinin önceden hesapladığı değerlerdir.</div>
+      </section>
+
+      <section class="panel replay-controls" aria-label="Simülasyon kontrolleri">
+        <div class="control-buttons">
+          <button id="play-button" class="primary-button" type="button">▶ Başlat</button>
+          <button id="next-button" class="secondary-button" type="button">Sonraki 15 dakika</button>
+          <button id="reset-button" class="secondary-button" type="button">Başa dön</button>
+        </div>
+        <label class="speed-control" for="speed-select">Oynatma hızı
+          <select id="speed-select">
+            <option value="2000">Yavaş · 2 sn/adım</option>
+            <option value="1000" selected>Normal · 1 sn/adım</option>
+            <option value="500">Hızlı · 0,5 sn/adım</option>
+          </select>
+        </label>
+        <div class="replay-progress" aria-live="polite">
+          <span id="progress-text">Başlamaya hazır</span>
+          <div class="progress-track"><div id="progress-fill"></div></div>
+        </div>
+      </section>
+
+      <section class="replay-metrics" aria-label="Simülasyondaki son durum">
+        <article class="metric"><span>Şu anki ölçüm saati</span><strong id="current-time">—</strong><small>tahmin yapılırken bilinen zaman</small></article>
+        <article class="metric"><span>Şu anki toplam AC güç</span><strong id="current-power">—</strong><small>22 inverterin ölçümü</small></article>
+        <article class="metric focus-metric"><span id="forecast-label">15 dakika sonrası tahmin</span><strong id="forecast-power">—</strong><small id="target-time">Hedef saat: —</small></article>
+        <article class="metric"><span>Önceki tahminin sonucu</span><strong id="actual-power">—</strong><small id="previous-error">Mutlak hata: —</small></article>
+      </section>
+
+      <section class="panel replay-chart-panel" aria-labelledby="replay-chart-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">TAHMİN VE GERÇEKLEŞEN ÜRETİM</p>
+            <h2 id="replay-chart-title">Gün boyunca toplam AC güç</h2>
+            <p class="muted">Turuncu çizgi tahminleri; mavi çizgi yalnızca zamanı geldiğinde açılan gerçek ölçümleri gösterir.</p>
+          </div>
+          <div class="legend" aria-label="Grafik açıklaması"><span><i class="dot model"></i> Tahmin</span><span><i class="dot actual"></i> Gerçek</span></div>
+        </div>
+        <div class="chart-wrap"><svg id="replay-chart" viewBox="0 0 960 350" role="img" aria-label="Adım adım açılan tahmin ve gerçek toplam AC güç grafiği"></svg></div>
+        <p class="chart-note" id="replay-status" aria-live="polite">Başlat'a basarak ilk tahmini gör.</p>
+      </section>
+
+      <section class="panel replay-explanation" aria-labelledby="replay-explanation-title">
+        <p class="eyebrow">BU EKRANDA NE OLUYOR?</p>
+        <h2 id="replay-explanation-title">Bir adımın anlamı</h2>
+        <div class="replay-steps">
+          <p><strong>1.</strong> Model, o anda bilinen güç ve hava ölçümlerini kullanır.</p>
+          <p><strong>2.</strong> 15 dakika sonraki toplam AC güç tahmini gösterilir.</p>
+          <p><strong>3.</strong> Sonraki adımda gerçek kayıt açılır ve tahmin hatası hesaplanır.</p>
+        </div>
+        <p class="muted">Gösterim, tam 15 dakikalık ardışık kayıtların bulunduğu 07.00–23.45 aralığını kullanır. İlk tahminin mevcut ölçümü 06.45'e aittir. Ekrandaki değerler veri setinin AC_POWER ölçeğindedir; birimi doğrulanmadığı için kW olarak sunulmaz.</p>
+      </section>
+
+      <footer>Solar Forecast · Kaggle Solar Power Generation Data · Tarihsel test simülasyonu</footer>
+    </main>
+  </body>
+</html>

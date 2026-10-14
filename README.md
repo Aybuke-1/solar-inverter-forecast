@@ -4,7 +4,7 @@ Bir güneş enerjisi santralindeki **22 inverterin 15 dakika sonraki AC gücün�
 
 ## Sonuç
 
-Son test bölümünde (13.860 örnek) seçilen **Gradient Boosting** modelinin ortalama mutlak hatası **51,95**, basit tahminin hatası **54,56** oldu. Daha küçük hata daha iyi tahmin demektir. Güneş ışınımı bulunan saatlerde model **92,34**, basit tahmin **97,38** hata verdi. Gücün hızlı değiştiği 1.174 örnekte model **263,70**, basit tahmin **293,90** hata verdi. Model, 22 inverterin **20’sinde** basit tahminden daha iyiydi; 2’sinde daha kötüydü.
+Son test bölümünde (13.860 örnek) seçilen **Gradient Boosting** modelinin ortalama mutlak hatası **51,92**, basit tahminin hatası **54,56** oldu. Daha küçük hata daha iyi tahmin demektir. Güneş ışınımı bulunan saatlerde model **92,30**, basit tahmin **97,38** hata verdi. Gücün hızlı değiştiği 1.174 örnekte model **263,54**, basit tahmin **293,90** hata verdi. Model, 22 inverterin **20’sinde** basit tahminden daha iyiydi; 2’sinde daha kötüydü.
 
 ![Her inverterde modelin basit tahmine göre hata farkı](reports/figures/inverter_improvement.png)
 
@@ -12,13 +12,15 @@ Grafikte sağdaki yeşil çubuklar modelin daha iyi olduğu inverterleri, soldak
 
 “Hızlı değişim” sınırı, öğrenme verisindeki 15 dakikalık mutlak güç değişimlerinin üst %10’undan hesaplandı (**189,31**). Bu grup yalnızca sonradan hata analizi için kullanılır; gerçekleşecek değişim modele önceden verilmez.
 
-22 inverterin aynı saatteki tahminleri toplanarak **toplam inverter AC gücü** de incelendi. Son testte 630 zaman noktası için toplam güç MAE değeri basit tahminde **1.153,82**, modelde **1.098,33** oldu. Bu değerler 22 gücün toplamına ait olduğu için tek inverter hata değerleriyle aynı ölçekte değildir.
+22 inverterin aynı saatteki tahminleri toplanarak **toplam inverter AC gücü** de incelendi. Son testte 630 zaman noktası için toplam güç MAE değeri basit tahminde **1.153,82**, modelde **1.097,90** oldu. Bu değerler 22 gücün toplamına ait olduğu için tek inverter hata değerleriyle aynı ölçekte değildir.
 
 ![Son test gününde toplam inverter AC gücü](reports/figures/plant_power_last_day.png)
 
 ## Etkileşimli sonuç ekranı
 
 [Dashboard'u aç](dashboard/index.html) bağlantısıyla sonuçları tarayıcıda inceleyebilirsin. Ekranda toplam güç grafiğinin model/basit tahmin çizgileri açılıp kapatılabilir; bir inverter seçildiğinde onun hata değerleri gösterilir. **Canlı santral verisi değildir:** yalnızca son test döneminin kayıtlı sonuçlarını gösterir. Ek bir web paketi veya sunucu gerekmez.
+
+[Tahmin simülasyonunu aç](dashboard/simulation.html) bağlantısı, son test gününün 07.00–23.45 arasındaki ardışık kayıtlarını hızlandırılmış biçimde oynatır. Başlat, duraklat, tek adım ilerlet, başa dön ve hız seçimi vardır. Her adımda mevcut ölçüm ile **15 dakika sonrası tahmin** gösterilir; gerçek güç ve o tahminin hatası ancak sonraki adımda açılır. Böylece sunumda tahmin süreci izlenebilir. Bu ekran da gerçek zamanlı santral bağlantısı kullanmaz; Python modelinin önceden hesapladığı test tahminlerini oynatır.
 
 `src/plant_model.py` çalıştırıldığında `dashboard/data.js` dosyası da yeniden üretilir. Bu dosyada ham CSV kayıtları yerine özet sonuçlar ve son test gününün toplam güç serisi bulunur. GitHub'a yüklendikten sonra bu statik ekran [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) ile de yayımlanabilir; yayımlama şu anda yapılmamıştır.
 
@@ -30,7 +32,7 @@ Grafikte sağdaki yeşil çubuklar modelin daha iyi olduğu inverterleri, soldak
 4. Veri **tarih ve saat bazında** yaklaşık %60 öğrenme, %20 doğrulama ve %20 son test olarak ayrılır. Böylece aynı saat farklı inverterlerde iki bölüme dağılmaz. Model seçimi yalnızca doğrulama verisiyle yapılır.
 5. Seçilen model yeniden eğitilir; son testte hem genel hem de inverter bazındaki sonuçlar basit tahminle **ortalama mutlak hata (MAE)** üzerinden karşılaştırılır.
 
-Doğrulama hataları: basit tahmin **66,45**, Random Forest **60,49**, Gradient Boosting **59,65**. Son model yalnızca tahmin anında bilinen ölçümleri kullanır; gelecek hava ölçümleri kullanılmaz.
+Doğrulama hataları: basit tahmin **66,45**, Random Forest **60,49**, Gradient Boosting **59,61**. Son model yalnızca tahmin anında bilinen ölçümleri kullanır; gelecek hava ölçümleri kullanılmaz. Fiziksel olarak mümkün olmayan negatif güç tahminleri sıfıra çekilir; sonuçlar bu düzeltmeden sonra hesaplanır.
 
 ## Kendi bilgisayarında çalıştırma
 
@@ -61,7 +63,7 @@ Komut doğrulama ve test hatalarını terminale yazar; `reports/inverter_errors.
 | `src/plant_model.py` | 22 inverter için model karşılaştırma, test ve hata analizi |
 | `src/train_model.py` | Tek inverterli ilk geliştirme deneyi |
 | `src/inspect_data.py` | İlk veri incelemesi ve keşif deneyi |
-| `dashboard/` | Etkileşimli HTML/CSS/JavaScript sonuç ekranı |
+| `dashboard/` | Etkileşimli sonuç ekranı ve tarihsel tahmin simülasyonu |
 | `index.html` | Statik site ana sayfası; dashboard'a yönlendirir |
 | `data/raw/README.md` | Ham veriyi indirme yönergesi |
 | `reports/proje_ozeti.md` | Ders için kısa yöntem ve sonuç anlatımı |

@@ -7,6 +7,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
@@ -203,14 +204,16 @@ def main() -> None:
     validation_errors = {}
     for name, model in candidate_models().items():
         model.fit(features.loc[train.index], train[TARGET])
-        predictions = model.predict(features.loc[validation.index])
+        predictions = np.maximum(model.predict(features.loc[validation.index]), 0)
         validation_errors[name] = mean_absolute_error(validation[TARGET], predictions)
 
     selected_name = min(validation_errors, key=validation_errors.get)
     selected_model = candidate_models()[selected_name]
     final_training = pd.concat([train, validation])
     selected_model.fit(features.loc[final_training.index], final_training[TARGET])
-    test["MODEL_PREDICTION"] = selected_model.predict(features.loc[test.index])
+    test["MODEL_PREDICTION"] = np.maximum(
+        selected_model.predict(features.loc[test.index]), 0
+    )
     test["BASELINE_PREDICTION"] = test["AC_POWER"]
 
     overall_baseline = mean_absolute_error(test[TARGET], test["BASELINE_PREDICTION"])
